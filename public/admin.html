@@ -7,145 +7,286 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #0070c9;
+            --bg: #050505;
+            --card-bg: #111;
+            --border: #222;
+            --text: #fff;
+            --text-dim: #888;
+        }
+
         body {
-            background-color: #0a0a0a;
-            color: white;
-            padding: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
         }
+
+        .admin-header {
+            background: #000;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-header h1 {
+            font-size: 20px;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
         .admin-container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: #111;
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid #333;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
-        .login-section, .dashboard-section {
-            display: none;
-        }
-        .login-section.active, .dashboard-section.active {
-            display: block;
-        }
-        h1, h2 {
+
+        .login-section {
+            max-width: 400px;
+            margin: 100px auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
             text-align: center;
-            color: #fff;
+        }
+
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
             margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
         }
-        .form-group {
-            margin-bottom: 20px;
+
+        .tab-btn {
+            background: transparent;
+            color: var(--text-dim);
+            border: none;
+            padding: 10px 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+            border-radius: 8px;
         }
-        label {
+
+        .tab-btn.active {
+            color: var(--text);
+            background: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
             display: block;
-            margin-bottom: 5px;
-            color: #888;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Forms */
+        .upload-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            margin-bottom: 40px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
         input[type="password"], input[type="text"], input[type="file"] {
             width: 100%;
-            padding: 12px;
-            background: #222;
-            border: 1px solid #444;
+            padding: 12px 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
             color: white;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-sizing: border-box;
         }
+
         .btn {
-            width: 100%;
-            padding: 12px;
-            background: white;
-            color: black;
+            padding: 12px 25px;
+            background: var(--primary);
+            color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
         }
+
         .btn:hover {
-            background: #ddd;
+            background: #0056a3;
+            transform: translateY(-2px);
         }
+
         .btn-danger {
             background: #ff4444;
-            color: white;
         }
+
         .btn-danger:hover {
             background: #cc0000;
         }
-        .design-list {
-            margin-top: 30px;
+
+        /* Grid List */
+        .grid-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
         }
-        .design-item {
-            background: #222;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
+
+        .item-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: 0.3s;
         }
-        .design-item img {
+
+        .item-card:hover {
+            border-color: var(--primary);
+        }
+
+        .item-card img {
             width: 100%;
-            height: 150px;
+            aspect-ratio: 1/1;
             object-fit: cover;
-            border-radius: 5px;
-            margin-bottom: 10px;
         }
-        .design-item .price {
+
+        .item-info {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-price {
             font-weight: bold;
-            display: block;
-            margin-bottom: 10px;
+            color: var(--primary);
         }
+
         .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
             background: transparent;
-            color: white;
-            border: 1px solid white;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            padding: 8px 15px;
+            border-radius: 5px;
             cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            color: white;
+            border-color: white;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .admin-header {
+                padding: 15px 20px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <button id="logoutBtn" class="logout-btn" style="display: none;">Cerrar Sesión</button>
+    <header class="admin-header">
+        <h1>𝟛𝟛𝟛 ADMIN</h1>
+        <button id="logoutBtn" class="logout-btn" style="display: none;">Cerrar Sesión</button>
+    </header>
 
     <div class="admin-container">
-        <!-- SECCIÓN DE LOGIN -->
-        <div id="loginSection" class="login-section active">
-            <h1>Acceso Admin</h1>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="adminPassword" placeholder="Introduce la clave">
+        <!-- LOGIN -->
+        <div id="loginSection" class="login-section">
+            <i class="fas fa-lock" style="font-size: 40px; color: var(--primary); margin-bottom: 20px;"></i>
+            <h2>Acceso Restringido</h2>
+            <div style="margin-top: 25px;">
+                <input type="password" id="adminPassword" placeholder="Contraseña de administrador" style="text-align: center;">
+                <button class="btn" onclick="login()" style="width: 100%; margin-top: 15px;">Entrar al Panel</button>
             </div>
-            <button class="btn" onclick="login()">Entrar</button>
         </div>
 
-        <!-- SECCIÓN DE DASHBOARD -->
-        <div id="dashboardSection" class="dashboard-section">
-            <h1>Gestión de Diseños</h1>
-            
-            <form id="uploadForm" class="form-group">
-                <h3>Subir Nuevo Diseño</h3>
-                <div class="form-group">
-                    <label>Imagen</label>
-                    <input type="file" id="designImage" accept="image/*" required>
-                </div>
-                <div class="form-group">
-                    <label>Precio (ej: $50 o Consultar)</label>
-                    <input type="text" id="designPrice" placeholder="Precio del diseño" required>
-                </div>
-                <button type="submit" class="btn">Subir Diseño</button>
-            </form>
+        <!-- DASHBOARD -->
+        <div id="dashboardSection" style="display: none;">
+            <div class="admin-tabs">
+                <button class="tab-btn active" onclick="switchTab('designs')">DISEÑOS</button>
+                <button class="tab-btn" onclick="switchTab('portfolio')">PORTAFOLIO</button>
+            </div>
 
-            <hr style="border: 0; border-top: 1px solid #333; margin: 40px 0;">
+            <!-- TAB DISEÑOS -->
+            <div id="tab-designs" class="tab-content active">
+                <div class="upload-card">
+                    <h3>Subir Nuevo Diseño</h3>
+                    <form id="designForm" class="form-row">
+                        <div class="form-group">
+                            <label>Imagen</label>
+                            <input type="file" id="designImage" accept="image/*" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio</label>
+                            <input type="text" id="designPrice" placeholder="Ej: $60 o Consultar" required>
+                        </div>
+                        <button type="submit" class="btn">Subir</button>
+                    </form>
+                </div>
+                <div id="designsList" class="grid-list">
+                    <!-- Dinámico -->
+                </div>
+            </div>
 
-            <h3>Diseños Actuales</h3>
-            <div id="adminDesignsList" class="design-list">
-                <!-- Se cargará aquí -->
+            <!-- TAB PORTAFOLIO -->
+            <div id="tab-portfolio" class="tab-content">
+                <div class="upload-card">
+                    <h3>Agregar al Portafolio</h3>
+                    <form id="portfolioForm" class="form-row" style="grid-template-columns: 1fr auto;">
+                        <div class="form-group">
+                            <label>Imagen del Tatuaje</label>
+                            <input type="file" id="portfolioImage" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn">Subir al Porta</button>
+                    </form>
+                </div>
+                <div id="portfolioList" class="grid-list">
+                    <!-- Dinámico -->
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Contenedor de Notificaciones (Toasts) -->
     <div id="toastContainer" class="toast-container"></div>
 
     <script>
@@ -170,91 +311,121 @@
         }
 
         function login() {
-            const input = document.getElementById('adminPassword');
-            password = input.value;
+            password = document.getElementById('adminPassword').value;
+            // Validamos contra una carga de datos
+            loadAll();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            // Intentar cargar los diseños para verificar la clave
-            loadDesigns();
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+
+        async function loadAll() {
+            const success = await Promise.all([loadDesigns(), loadPortfolio()]);
+            if (success.every(s => s)) {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('dashboardSection').style.display = 'block';
+                document.getElementById('logoutBtn').style.display = 'block';
+            } else {
+                showToast("Contraseña incorrecta o error de conexión", "error");
+            }
         }
 
         async function loadDesigns() {
             try {
                 const res = await fetch('/api/designs');
-                const designs = await res.json();
-                
-                // Si llegamos aquí es que al menos la ruta pública funciona
-                // Pero validaremos la clave contra una acción real más tarde
-                
-                document.getElementById('loginSection').classList.remove('active');
-                document.getElementById('dashboardSection').classList.add('active');
-                document.getElementById('logoutBtn').style.display = 'block';
-                
-                const list = document.getElementById('adminDesignsList');
-                list.innerHTML = designs.map(d => `
-                    <div class="design-item">
-                        <img src="${d.imageUrl}" alt="Diseño">
-                        <span class="price">${d.price}</span>
-                        <button class="btn btn-danger btn-sm" onclick="deleteDesign('${d._id}')">Eliminar</button>
+                const data = await res.json();
+                const list = document.getElementById('designsList');
+                list.innerHTML = data.map(d => `
+                    <div class="item-card">
+                        <img src="${d.imageUrl}">
+                        <div class="item-info">
+                            <span class="item-price">${d.price}</span>
+                            <button class="btn btn-danger btn-sm" onclick="deleteItem('designs', '${d._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 `).join('');
-                
-            } catch (err) {
-                showToast("Error al cargar diseños", "error");
-            }
+                return true;
+            } catch (e) { return false; }
         }
 
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        async function loadPortfolio() {
+            try {
+                const res = await fetch('/api/portfolio');
+                const data = await res.json();
+                const list = document.getElementById('portfolioList');
+                list.innerHTML = data.map(p => `
+                    <div class="item-card">
+                        <img src="${p.imageUrl}">
+                        <div class="item-info">
+                            <span style="font-size:12px; color:#555;">Tatuaje Realizado</span>
+                            <button class="btn btn-danger btn-sm" onclick="deleteItem('portfolio', '${p._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                return true;
+            } catch (e) { return false; }
+        }
+
+        // Subir Diseño
+        document.getElementById('designForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const formData = new FormData();
             formData.append('image', document.getElementById('designImage').files[0]);
             formData.append('price', document.getElementById('designPrice').value);
             formData.append('password', password);
 
-            try {
-                const res = await fetch('/api/admin/designs', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (res.ok) {
-                    showToast("Diseño subido con éxito");
-                    document.getElementById('uploadForm').reset();
-                    loadDesigns();
-                } else {
-                    const error = await res.json();
-                    showToast(error.error || "Error al subir", "error");
-                }
-            } catch (err) {
-                showToast("Error de conexión", "error");
+            const res = await fetch('/api/admin/designs', { method: 'POST', body: formData });
+            if (res.ok) {
+                showToast("Diseño guardado");
+                document.getElementById('designForm').reset();
+                loadDesigns();
+            } else {
+                showToast("Error al subir", "error");
             }
         });
 
-        async function deleteDesign(id) {
-            if (!confirm("¿Seguro que quieres eliminar este diseño?")) return;
+        // Subir Portafolio
+        document.getElementById('portfolioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('image', document.getElementById('portfolioImage').files[0]);
+            formData.append('password', password);
 
-            try {
-                const res = await fetch(`/api/admin/designs/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
+            const res = await fetch('/api/admin/portfolio', { method: 'POST', body: formData });
+            if (res.ok) {
+                showToast("Añadido al portafolio");
+                document.getElementById('portfolioForm').reset();
+                loadPortfolio();
+            } else {
+                showToast("Error al subir", "error");
+            }
+        });
 
-                if (res.ok) {
-                    showToast("Diseño eliminado");
-                    loadDesigns();
-                } else {
-                    const error = await res.json();
-                    showToast(error.error || "Error al eliminar", "error");
-                }
-            } catch (err) {
-                showToast("Error de conexión", "error");
+        async function deleteItem(type, id) {
+            if (!confirm("¿Eliminar este elemento permanentemente?")) return;
+            const res = await fetch(`/api/admin/${type}/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            if (res.ok) {
+                showToast("Eliminado correctamente");
+                type === 'designs' ? loadDesigns() : loadPortfolio();
+            } else {
+                showToast("Error al eliminar", "error");
             }
         }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            location.reload();
-        });
+        document.getElementById('logoutBtn').addEventListener('click', () => location.reload());
     </script>
 </body>
 </html>

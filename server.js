@@ -118,6 +118,13 @@ const designSchema = new mongoose.Schema({
 })
 const Design = mongoose.model("Design", designSchema)
 
+// --- NUEVO ESQUEMA PARA EL PORTAFOLIO ---
+const portfolioSchema = new mongoose.Schema({
+  imageUrl: String,
+  createdAt: { type: Date, default: Date.now }
+})
+const Portfolio = mongoose.model("Portfolio", portfolioSchema)
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Si es un diseño de admin va a 'public/tattoo', si es referencia de cliente a 'uploads'
@@ -140,7 +147,7 @@ const upload = multer({
   }
 })
 
-// --- RUTAS DE ADMINISTRACIÓN ---
+// --- RUTAS DE ADMINISTRACIÓN (DISEÑOS) ---
 const ADMIN_PASSWORD = "333adminpassword"; // Cambia esto por la contraseña que quieras
 
 // Obtener todos los diseños (Público)
@@ -193,6 +200,63 @@ app.delete("/api/admin/designs/:id", async (req, res) => {
       res.json({ message: "Diseño eliminado" });
     } else {
       res.status(404).json({ error: "Diseño no encontrado" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- RUTAS DE ADMINISTRACIÓN (PORTAFOLIO) ---
+
+// Obtener todo el portafolio (Público)
+app.get("/api/portfolio", async (req, res) => {
+  try {
+    const portfolio = await Portfolio.find().sort({ createdAt: -1 });
+    res.json(portfolio);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Agregar al portafolio (Admin)
+app.post("/api/admin/portfolio", upload.single("image"), async (req, res) => {
+  const { password } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Contraseña incorrecta" });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "Debes subir una imagen" });
+  }
+
+  try {
+    const newPortfolio = new Portfolio({
+      imageUrl: `tattoo/${req.file.filename}`
+    });
+    await newPortfolio.save();
+    res.status(201).json(newPortfolio);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Eliminar del portafolio (Admin)
+app.delete("/api/admin/portfolio/:id", async (req, res) => {
+  const { password } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Contraseña incorrecta" });
+  }
+
+  try {
+    const item = await Portfolio.findById(req.params.id);
+    if (item) {
+      // Eliminar el archivo físico
+      const filePath = path.join(__dirname, "public", item.imageUrl);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      
+      await Portfolio.findByIdAndDelete(req.params.id);
+      res.json({ message: "Imagen de portafolio eliminada" });
+    } else {
+      res.status(404).json({ error: "Imagen no encontrada" });
     }
   } catch (error) {
     res.status(500).json({ error: error.message });

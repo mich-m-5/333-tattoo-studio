@@ -272,6 +272,32 @@ function initScrollReveal() {
 }
 
 // --- LÓGICA DE CARGA DE DISEÑOS DINÁMICOS ---
+async function fetchPortfolio() {
+  const gallery = document.getElementById("portfolioGallery");
+  if (!gallery) return;
+
+  try {
+    const response = await fetch("/api/portfolio");
+    const portfolio = await response.json();
+
+    if (portfolio.length === 0) {
+      gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">El portafolio está siendo actualizado.</p>';
+      return;
+    }
+
+    gallery.innerHTML = portfolio.map(item => `
+      <img src="${item.imageUrl}" alt="Tatuaje Realizado" class="reveal">
+    `).join('');
+
+    // Re-inicializar scroll reveal
+    initScrollReveal();
+    
+  } catch (error) {
+    console.error("Error cargando portafolio:", error);
+    gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ff4444;">Error al cargar el portafolio.</p>';
+  }
+}
+
 async function fetchDesigns() {
   const gallery = document.getElementById("designsGallery");
   if (!gallery) return;
@@ -306,6 +332,7 @@ async function fetchDesigns() {
 
 // Ejecutar al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
+  fetchPortfolio();
   fetchDesigns();
   initScrollReveal();
   
