@@ -14,60 +14,51 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true para puerto 465
+  service: "gmail",
   auth: {
     user: "333.tattoo.studio.ec@gmail.com",
     pass: "pprz cfaa nccm nnng"
-  },
-  tls: {
-    rejectUnauthorized: false // Permite conexiones si el certificado es dudoso en el servidor
   }
 });
 
-// Verificar conexión con el servidor de correo al iniciar
+// Verificar conexión SMTP
 transporter.verify((error, success) => {
   if (error) {
-    console.error("❌ ERROR EN CONFIGURACIÓN DE CORREO:", error);
+    console.log("❌ ERROR SMTP:", error.message);
   } else {
-    console.log("✅ Servidor de correo listo para enviar mensajes");
+    console.log("✅ SISTEMA DE CORREO LISTO");
   }
 });
 
 async function enviarCorreo(data, filename) {
+  console.log("📬 INICIANDO PROCESO DE CORREO...");
+  
   let imagePath = null;
-  // Usamos path.resolve para rutas absolutas más seguras en Render
   const logoPath = path.resolve(__dirname, "public", "tattoo", "WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg");
   
   if (filename) {
     imagePath = path.resolve(__dirname, "uploads", filename);
+    console.log("📎 Adjuntando archivo de usuario:", filename);
   } else if (data.chosenDesignUrl) {
     const cleanPath = data.chosenDesignUrl.replace(/\\/g, "/");
     imagePath = path.resolve(__dirname, "public", cleanPath);
+    console.log("📎 Adjuntando diseño del catálogo:", cleanPath);
   }
 
   const attachments = [];
   
-  // Adjuntar Logo si existe
   if (fs.existsSync(logoPath)) {
-    attachments.push({
-      filename: 'logo.jpg',
-      path: logoPath,
-      cid: 'studioLogo'
-    });
+    attachments.push({ filename: 'logo.jpg', path: logoPath, cid: 'studioLogo' });
+    console.log("✅ Logo encontrado");
   } else {
-    console.warn("⚠️ Advertencia: No se encontró el logo en:", logoPath);
+    console.log("⚠️ Logo NO encontrado en:", logoPath);
   }
 
-  // Adjuntar imagen de referencia o diseño si existe
   if (imagePath && fs.existsSync(imagePath)) {
-    attachments.push({ 
-      filename: filename || path.basename(imagePath),
-      path: imagePath 
-    });
+    attachments.push({ filename: filename || path.basename(imagePath), path: imagePath });
+    console.log("✅ Imagen de referencia encontrada");
   } else if (imagePath) {
-    console.warn("⚠️ Advertencia: No se encontró la imagen adjunta en:", imagePath);
+    console.log("⚠️ Imagen de referencia NO encontrada en:", imagePath);
   }
 
   const emailHtml = `
@@ -81,32 +72,25 @@ async function enviarCorreo(data, filename) {
         <p><strong>Nombre:</strong> ${data.name}</p>
         <p><strong>WhatsApp:</strong> ${data.whatsapp}</p>
         <p><strong>Edad:</strong> ${data.age || 'No proporcionada'}</p>
-        <p><strong>Tamaño aproximado:</strong> ${data['tattoo-size'] || 'No especificado'}</p>
+        <p><strong>Tamaño:</strong> ${data['tattoo-size'] || 'No especificado'}</p>
         <p><strong>Estilo:</strong> ${data.style || 'No seleccionado'}</p>
-        <p><strong>Idea/Detalles:</strong> ${data.idea || 'No proporcionada'}</p>
+        <p><strong>Idea:</strong> ${data.idea || 'No proporcionada'}</p>
       </div>
-      <hr style="border: 0; border-top: 1px solid #eee;">
-      <p style="font-size: 0.9em; color: #555;">
-        ${data.chosenDesignUrl ? `<strong>Diseño seleccionado del catálogo:</strong> ${data.chosenDesignUrl}` : '<strong>Referencia:</strong> El cliente subió su propia foto (adjunta en este correo).'}
-      </p>
     </div>
   `;
 
   try {
+    console.log("🚀 Enviando mail a Gmail...");
     const info = await transporter.sendMail({
       from: `"333 Tattoo Studio" <333.tattoo.studio.ec@gmail.com>`,
       to: "333.tattoo.studio.ec@gmail.com",
-      subject: `Nueva solicitud de tatuaje - ${data.name}`,
-      text: `NUEVA COTIZACIÓN RECIBIDA: \n\nNombre: ${data.name}\nWhatsApp: ${data.whatsapp}\nEdad: ${data.age || 'No proporcionada'}\nTamaño: ${data['tattoo-size']}\nEstilo: ${data.style}\nIdea: ${data.idea}`,
+      subject: `Nueva solicitud - ${data.name}`,
       html: emailHtml,
       attachments: attachments
     });
-    console.log("✅ Correo enviado con éxito. ID:", info.messageId);
+    console.log("✨ CORREO ENVIADO CON ÉXITO! ID:", info.messageId);
   } catch (error) {
-    console.error("❌ ERROR AL ENVIAR EL CORREO:", error.message);
-    // Log más detallado para Render
-    console.error("Código de error:", error.code);
-    console.error("Comando SMTP:", error.command);
+    console.log("❌ ERROR FINAL EN SENDMAIL:", error.message);
   }
 }
 
