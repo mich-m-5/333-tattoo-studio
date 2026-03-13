@@ -26,20 +26,23 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false,
     minVersion: "TLSv1.2"
-  }
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  family: 4 // FORZAR IPv4 para evitar el error ENETUNREACH en Render
 });
 
 // Verificar conexión SMTP al iniciar con un pequeño retraso para asegurar que la red esté lista en Render
 setTimeout(() => {
-  console.log("🔍 [SISTEMA] Verificando conexión de correo...");
+  console.log("🔍 [SISTEMA] Verificando conexión de correo (IPv4)...");
   transporter.verify((error, success) => {
     if (error) {
-      console.log("❌ ERROR SMTP INICIAL:", error.message);
+      console.log("❌ ERROR SMTP INICIAL (IPv4):", error.message);
     } else {
-      console.log("✅ SISTEMA DE CORREO LISTO PARA ENVIAR");
+      console.log("✅ SISTEMA DE CORREO LISTO PARA ENVIAR (IPv4)");
     }
   });
-}, 5000); // 5 segundos de espera para que la red de Render se estabilice
+}, 5000);
 
 async function enviarCorreo(data, filename) {
   console.log("📬 [PASO 1] INICIANDO PROCESO DE CORREO...");
@@ -89,7 +92,7 @@ async function enviarCorreo(data, filename) {
   `;
 
   try {
-    console.log("🚀 [PASO 5] Disparando correo hacia Gmail...");
+    console.log("🚀 [PASO 5] Disparando correo hacia Gmail (IPv4)...");
     const info = await transporter.sendMail({
       from: `"333 Tattoo Studio" <333.tattoo.studio.ec@gmail.com>`,
       to: "333.tattoo.studio.ec@gmail.com",
@@ -98,8 +101,10 @@ async function enviarCorreo(data, filename) {
       attachments: attachments
     });
     console.log("✨ [PASO 6] ¡CORREO ENVIADO CON ÉXITO! ID:", info.messageId);
+    return true; // Para que el .then() funcione bien
   } catch (error) {
     console.log("❌ [PASO 6] ERROR AL ENVIAR CORREO:", error.message);
+    throw error; // Lanzamos el error para que el .catch() lo atrape en la ruta
   }
 }
 
