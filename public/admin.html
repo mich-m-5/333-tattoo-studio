@@ -173,20 +173,25 @@
             overflow: hidden;
             border: 1px solid var(--border);
             transition: 0.3s;
+            position: relative;
         }
 
         .item-card:hover {
             border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transform: translateY(-5px);
         }
 
         .item-card img {
             width: 100%;
             aspect-ratio: 1/1;
             object-fit: cover;
+            display: block;
         }
 
         .item-info {
             padding: 15px;
+            background: rgba(0,0,0,0.8);
             display: flex;
             justify-content: space-between;
             align-items: center;
