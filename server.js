@@ -14,47 +14,66 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true para puerto 465
   auth: {
     user: "333.tattoo.studio.ec@gmail.com",
     pass: "pprz cfaa nccm nnng"
+  },
+  tls: {
+    rejectUnauthorized: false // Permite conexiones si el certificado es dudoso en el servidor
   }
-})
+});
+
+// Verificar conexión con el servidor de correo al iniciar
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ ERROR EN CONFIGURACIÓN DE CORREO:", error);
+  } else {
+    console.log("✅ Servidor de correo listo para enviar mensajes");
+  }
+});
 
 async function enviarCorreo(data, filename) {
   let imagePath = null;
-  const logoPath = path.join(__dirname, "public", "tattoo", "WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg");
+  // Usamos path.resolve para rutas absolutas más seguras en Render
+  const logoPath = path.resolve(__dirname, "public", "tattoo", "WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg");
   
   if (filename) {
-    imagePath = path.join(__dirname, "uploads", filename);
+    imagePath = path.resolve(__dirname, "uploads", filename);
   } else if (data.chosenDesignUrl) {
     const cleanPath = data.chosenDesignUrl.replace(/\\/g, "/");
-    imagePath = path.join(__dirname, "public", cleanPath);
+    imagePath = path.resolve(__dirname, "public", cleanPath);
   }
 
   const attachments = [];
   
-  // Adjuntar Logo para el encabezado del correo
+  // Adjuntar Logo si existe
   if (fs.existsSync(logoPath)) {
     attachments.push({
       filename: 'logo.jpg',
       path: logoPath,
-      cid: 'studioLogo' // ID para usar en el HTML
+      cid: 'studioLogo'
     });
+  } else {
+    console.warn("⚠️ Advertencia: No se encontró el logo en:", logoPath);
   }
 
-  // Adjuntar imagen de referencia o diseño escogido
+  // Adjuntar imagen de referencia o diseño si existe
   if (imagePath && fs.existsSync(imagePath)) {
     attachments.push({ 
       filename: filename || path.basename(imagePath),
       path: imagePath 
     });
+  } else if (imagePath) {
+    console.warn("⚠️ Advertencia: No se encontró la imagen adjunta en:", imagePath);
   }
 
   const emailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <img src="cid:studioLogo" alt="333 Tattoo Studio" style="max-width: 150px; height: auto;">
+        ${fs.existsSync(logoPath) ? '<img src="cid:studioLogo" alt="333 Tattoo Studio" style="max-width: 150px; height: auto;">' : '<h1 style="color: #007bff;">333 Tattoo Studio</h1>'}
         <h2 style="color: #007bff; margin-top: 10px;">NUEVA COTIZACIÓN RECIBIDA</h2>
       </div>
       <hr style="border: 0; border-top: 1px solid #eee;">
@@ -82,9 +101,12 @@ async function enviarCorreo(data, filename) {
       html: emailHtml,
       attachments: attachments
     });
-    console.log("Correo enviado con éxito. ID:", info.messageId);
+    console.log("✅ Correo enviado con éxito. ID:", info.messageId);
   } catch (error) {
-    console.error("Error al enviar el correo:", error);
+    console.error("❌ ERROR AL ENVIAR EL CORREO:", error.message);
+    // Log más detallado para Render
+    console.error("Código de error:", error.code);
+    console.error("Comando SMTP:", error.command);
   }
 }
 
