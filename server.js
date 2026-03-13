@@ -4,6 +4,8 @@ const multer = require("multer")
 const nodemailer = require("nodemailer")
 const path = require("path")
 const fs = require("fs")
+const dns = require("dns")
+dns.setDefaultResultOrder("ipv4first") // FORZAR IPv4 para evitar el error ENETUNREACH en Render
 const app = express()
 
 // Asegurar que la carpeta 'uploads' exista en Render
@@ -15,8 +17,8 @@ if (!fs.existsSync(uploadsDir)) {
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false, // TLS
   auth: {
     user: "333.tattoo.studio.ec@gmail.com",
     pass: "ztkm mmfo zncj vppo"
@@ -31,7 +33,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.log("❌ ERROR SMTP INICIAL:", error.message);
   } else {
-    console.log("✅ SISTEMA DE CORREO LISTO PARA ENVIAR");
+    console.log("✅ SISTEMA DE CORREO LISTO PARA ENVIAR (IPv4)");
   }
 });
 
