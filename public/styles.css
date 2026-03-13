@@ -817,6 +817,137 @@ footer p {
   background-color: #0056a3;
 }
 
+/* --- RESPONSIVIDAD (MÓVIL) --- */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    padding: 20px;
+    gap: 15px;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  nav a {
+    margin-left: 0;
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+
+  .hero h2 {
+    font-size: 32px;
+    padding: 0 20px;
+  }
+
+  .hero p {
+    font-size: 18px;
+  }
+
+  .gallery {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+    gap: 10px;
+  }
+
+  .artists {
+    gap: 20px;
+  }
+
+  .artist-card {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  #lightbox img {
+    width: 90%;
+    height: auto;
+  }
+
+  /* Formulario en móvil */
+  .input-group-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .style-grid {
+    grid-template-columns: 1fr; /* 1 columna para estilos */
+  }
+
+  .step-line {
+    width: 40px; /* Líneas más cortas en móvil */
+  }
+
+  .form-header h2 {
+    font-size: 28px;
+  }
+
+  .final-logo {
+    font-size: 32px;
+  }
+
+  .form-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .form-buttons button {
+    width: 100%;
+  }
+
+  /* Banner de cookies */
+  .cookie-content {
+    padding: 0 20px;
+  }
+
+  .cookie-content p {
+    font-size: 12px;
+  }
+
+  .btn-reject, .btn-accept {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  /* Botón WhatsApp en móvil */
+  .whatsapp-btn {
+    bottom: 20px !important;
+    right: 20px !important;
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .whatsapp-btn i {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery {
+    grid-template-columns: 1fr; /* 1 columna en pantallas muy pequeñas */
+  }
+
+  .hero h2 {
+    font-size: 26px;
+  }
+
+  .step-indicator {
+    gap: 5px;
+  }
+
+  .step {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .step-line {
+    width: 20px;
+  }
+}
+
 /* --- SISTEMA DE NOTIFICACIONES PERSONALIZADO (TOASTS) --- */
 .toast-container {
   position: fixed;
