@@ -89,22 +89,9 @@
 <section id="designs">
   <h2>Diseños Disponibles</h2>
   <p>Escoge uno de estos diseños exclusivos listos para tatuar.</p>
-  <div class="gallery designs-gallery">
-    <div class="design-item">
-      <img src="tattoo/WhatsApp Image 2026-03-12 at 7.28.28 PM.jpeg" alt="Diseño Disponible">
-      <div class="price-tag">$40</div>
-      <button class="choose-design-btn">Escoger</button>
-    </div>
-    <div class="design-item">
-      <img src="tattoo/WhatsApp Image 2026-03-12 at 7.28.29 PM.jpeg" alt="Diseño Disponible">
-      <div class="price-tag">$40</div>
-      <button class="choose-design-btn">Escoger</button>
-    </div>
-    <div class="design-item">
-      <img src="tattoo/WhatsApp Image 2026-03-12 at 7.28.33 PM.jpeg" alt="Diseño Disponible">
-      <div class="price-tag">$80</div>
-      <button class="choose-design-btn">Escoger</button>
-    </div>
+  <div id="designsGallery" class="gallery designs-gallery">
+    <!-- Los diseños se cargarán aquí dinámicamente -->
+    <p style="grid-column: 1/-1; text-align: center; color: #888;">Cargando diseños...</p>
   </div>
 </section>
 
@@ -299,7 +286,7 @@
     <span onclick="openLegalModal('terminos')">Términos</span>
     <span onclick="openLegalModal('consentimiento')">Consentimiento</span>
   </div>
-  <p>Mich © 2026 • Todos los derechos reservados</p>
+  <p>Mich © 2026 • Todos los derechos reservados | <a href="admin.html" style="color: inherit; text-decoration: none; opacity: 0.5;">Admin</a></p>
 </footer>
 
 <!-- Contenedor para ampliar la imagen (Lightbox) -->

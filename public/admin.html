@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración | 333 Tattoo Studio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: white;
+            padding: 20px;
+        }
+        .admin-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #111;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+        .login-section, .dashboard-section {
+            display: none;
+        }
+        .login-section.active, .dashboard-section.active {
+            display: block;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+        }
+        input[type="password"], input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 5px;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            background: #ddd;
+        }
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #cc0000;
+        }
+        .design-list {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .design-item {
+            background: #222;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .design-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .design-item .price {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="logoutBtn" class="logout-btn" style="display: none;">Cerrar Sesión</button>
+
+    <div class="admin-container">
+        <!-- SECCIÓN DE LOGIN -->
+        <div id="loginSection" class="login-section active">
+            <h1>Acceso Admin</h1>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="adminPassword" placeholder="Introduce la clave">
+            </div>
+            <button class="btn" onclick="login()">Entrar</button>
+        </div>
+
+        <!-- SECCIÓN DE DASHBOARD -->
+        <div id="dashboardSection" class="dashboard-section">
+            <h1>Gestión de Diseños</h1>
+            
+            <form id="uploadForm" class="form-group">
+                <h3>Subir Nuevo Diseño</h3>
+                <div class="form-group">
+                    <label>Imagen</label>
+                    <input type="file" id="designImage" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label>Precio (ej: $50 o Consultar)</label>
+                    <input type="text" id="designPrice" placeholder="Precio del diseño" required>
+                </div>
+                <button type="submit" class="btn">Subir Diseño</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid #333; margin: 40px 0;">
+
+            <h3>Diseños Actuales</h3>
+            <div id="adminDesignsList" class="design-list">
+                <!-- Se cargará aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor de Notificaciones (Toasts) -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script>
+        let password = "";
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 500);
+                }, 3000);
+            }, 100);
+        }
+
+        function login() {
+            const input = document.getElementById('adminPassword');
+            password = input.value;
+            
+            // Intentar cargar los diseños para verificar la clave
+            loadDesigns();
+        }
+
+        async function loadDesigns() {
+            try {
+                const res = await fetch('/api/designs');
+                const designs = await res.json();
+                
+                // Si llegamos aquí es que al menos la ruta pública funciona
+                // Pero validaremos la clave contra una acción real más tarde
+                
+                document.getElementById('loginSection').classList.remove('active');
+                document.getElementById('dashboardSection').classList.add('active');
+                document.getElementById('logoutBtn').style.display = 'block';
+                
+                const list = document.getElementById('adminDesignsList');
+                list.innerHTML = designs.map(d => `
+                    <div class="design-item">
+                        <img src="${d.imageUrl}" alt="Diseño">
+                        <span class="price">${d.price}</span>
+                        <button class="btn btn-danger btn-sm" onclick="deleteDesign('${d._id}')">Eliminar</button>
+                    </div>
+                `).join('');
+                
+            } catch (err) {
+                showToast("Error al cargar diseños", "error");
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('image', document.getElementById('designImage').files[0]);
+            formData.append('price', document.getElementById('designPrice').value);
+            formData.append('password', password);
+
+            try {
+                const res = await fetch('/api/admin/designs', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (res.ok) {
+                    showToast("Diseño subido con éxito");
+                    document.getElementById('uploadForm').reset();
+                    loadDesigns();
+                } else {
+                    const error = await res.json();
+                    showToast(error.error || "Error al subir", "error");
+                }
+            } catch (err) {
+                showToast("Error de conexión", "error");
+            }
+        });
+
+        async function deleteDesign(id) {
+            if (!confirm("¿Seguro que quieres eliminar este diseño?")) return;
+
+            try {
+                const res = await fetch(`/api/admin/designs/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (res.ok) {
+                    showToast("Diseño eliminado");
+                    loadDesigns();
+                } else {
+                    const error = await res.json();
+                    showToast(error.error || "Error al eliminar", "error");
+                }
+            } catch (err) {
+                showToast("Error de conexión", "error");
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            location.reload();
+        });
+    </script>
+</body>
+</html>

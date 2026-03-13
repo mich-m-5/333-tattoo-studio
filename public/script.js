@@ -271,8 +271,42 @@ function initScrollReveal() {
   });
 }
 
+// --- LÓGICA DE CARGA DE DISEÑOS DINÁMICOS ---
+async function fetchDesigns() {
+  const gallery = document.getElementById("designsGallery");
+  if (!gallery) return;
+
+  try {
+    const response = await fetch("/api/designs");
+    const designs = await response.json();
+
+    if (designs.length === 0) {
+      gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">No hay diseños disponibles por el momento.</p>';
+      return;
+    }
+
+    gallery.innerHTML = designs.map(design => `
+      <div class="design-item">
+        <img src="${design.imageUrl}" alt="Diseño Disponible">
+        <div class="design-info">
+          <span class="price">${design.price}</span>
+          <button type="button" class="choose-design-btn">Escoger</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Re-inicializar scroll reveal para los nuevos elementos
+    initScrollReveal();
+    
+  } catch (error) {
+    console.error("Error cargando diseños:", error);
+    gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #ff4444;">Error al cargar los diseños.</p>';
+  }
+}
+
 // Ejecutar al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
+  fetchDesigns();
   initScrollReveal();
   
   // Mensaje de bienvenida/versión para confirmar que el código es el nuevo
@@ -351,8 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- LÓGICA DE SELECCIÓN DE DISEÑO ---
-  const chooseBtns = document.querySelectorAll(".choose-design-btn");
+  // --- LÓGICA DE SELECCIÓN DE DISEÑO (CON DELEGACIÓN PARA DISEÑOS DINÁMICOS) ---
   const selectedDesignContainer = document.getElementById("selectedDesignContainer");
   const selectedDesignImg = document.getElementById("selectedDesignImg");
   const chosenDesignInput = document.getElementById("chosenDesignInput");
@@ -360,38 +393,31 @@ document.addEventListener("DOMContentLoaded", () => {
   const removeDesignBtn = document.getElementById("removeDesignBtn");
   const designChosenMessage = document.getElementById("designChosenMessage");
 
-  chooseBtns.forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation(); // Evitar abrir el lightbox al elegir
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".choose-design-btn");
+    if (btn) {
+      e.stopPropagation();
       
-      // Obtener dinámicamente la imagen del mismo contenedor (design-item)
       const designItem = btn.closest(".design-item");
       const img = designItem.querySelector("img");
-      const imgUrl = img.getAttribute("src"); // Usamos el src actual de la imagen
+      const imgUrl = img.getAttribute("src");
       
-      // Mostrar previsualización en el formulario
       selectedDesignImg.src = imgUrl;
       chosenDesignInput.value = imgUrl;
       selectedDesignContainer.style.display = "block";
       
-      // Mostrar mensaje informativo arriba
       if (designChosenMessage) designChosenMessage.style.display = "flex";
       
-      // Cambiar subtítulo para indicar que ya se escogió
       const subtitle = document.getElementById("step3Subtitle");
       if (subtitle) subtitle.textContent = "Diseño escogido, termina la solicitud";
       
-      // Ocultar sección de subir archivo y quitar el 'required' temporalmente
       fileUploadSection.style.display = "none";
-      fileInput.removeAttribute("required");
+      const fileInput = document.getElementById("fileInput");
+      if (fileInput) fileInput.removeAttribute("required");
       
-      // Mantener el paso actual o ir al inicio del formulario para completar todo
-      // currentStep = 1; // Opcional: forzar inicio si quieres que llenen todo desde el principio
       updateFormSteps();
-      
-      // Hacer scroll al inicio del formulario para que llenen sus datos
       document.getElementById("booking").scrollIntoView({ behavior: 'smooth' });
-    });
+    }
   });
 
   removeDesignBtn.addEventListener("click", () => {

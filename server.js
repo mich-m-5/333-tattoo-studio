@@ -110,20 +110,23 @@ const bookingSchema = new mongoose.Schema({
 
 const Booking = mongoose.model("Booking",bookingSchema)
 
+// --- NUEVO ESQUEMA PARA DISEÑOS DISPONIBLES ---
+const designSchema = new mongoose.Schema({
+  imageUrl: String,
+  price: String,
+  createdAt: { type: Date, default: Date.now }
+})
+const Design = mongoose.model("Design", designSchema)
+
 const storage = multer.diskStorage({
-
-destination:(req,file,cb)=>{
-
-cb(null,"uploads")
-
-},
-
-filename:(req,file,cb)=>{
-
-cb(null,Date.now()+"-"+file.originalname)
-
-}
-
+  destination: (req, file, cb) => {
+    // Si es un diseño de admin va a 'public/tattoo', si es referencia de cliente a 'uploads'
+    const folder = req.path.includes("admin") ? "public/tattoo" : "uploads";
+    cb(null, folder)
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname)
+  }
 })
 
 const upload = multer({
@@ -136,6 +139,65 @@ const upload = multer({
     }
   }
 })
+
+// --- RUTAS DE ADMINISTRACIÓN ---
+const ADMIN_PASSWORD = "333adminpassword"; // Cambia esto por la contraseña que quieras
+
+// Obtener todos los diseños (Público)
+app.get("/api/designs", async (req, res) => {
+  try {
+    const designs = await Design.find().sort({ createdAt: -1 });
+    res.json(designs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Agregar un diseño (Admin)
+app.post("/api/admin/designs", upload.single("image"), async (req, res) => {
+  const { password, price } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Contraseña incorrecta" });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "Debes subir una imagen" });
+  }
+
+  try {
+    const newDesign = new Design({
+      imageUrl: `tattoo/${req.file.filename}`,
+      price: price || "Consultar"
+    });
+    await newDesign.save();
+    res.status(201).json(newDesign);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Eliminar un diseño (Admin)
+app.delete("/api/admin/designs/:id", async (req, res) => {
+  const { password } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Contraseña incorrecta" });
+  }
+
+  try {
+    const design = await Design.findById(req.params.id);
+    if (design) {
+      // Eliminar el archivo físico
+      const filePath = path.join(__dirname, "public", design.imageUrl);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      
+      await Design.findByIdAndDelete(req.params.id);
+      res.json({ message: "Diseño eliminado" });
+    } else {
+      res.status(404).json({ error: "Diseño no encontrado" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.post("/booking", upload.single("reference"), async (req, res) => {
   try {
