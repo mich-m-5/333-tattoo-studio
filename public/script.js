@@ -1,4 +1,4 @@
-const form = document.getElementById("bookingForm")
+const form = document.getElementById("bookingForm");
 let currentStep = 1;
 
 // --- SISTEMA DE NOTIFICACIONES (TOASTS) ---
@@ -34,6 +34,71 @@ function showToast(title, message, type = 'info', duration = 4000) {
       toast.remove();
     }, 500);
   }, duration);
+}
+
+// --- FUNCIÓN DE ENVÍO REFACTOREADA ---
+async function handleFormSubmission() {
+  console.log("Intentando enviar formulario...");
+  
+  const termsCheckbox = form.querySelector('input[type="checkbox"]');
+  if (!termsCheckbox.checked) {
+    showToast("¡Hey!", "Debes aceptar las políticas y condiciones para continuar.", "error");
+    return;
+  }
+
+  const submitBtn = form.querySelector(".submit-btn");
+  const originalBtnText = submitBtn.textContent;
+  
+  // Feedback visual inmediato
+  submitBtn.disabled = true;
+  submitBtn.textContent = "ENVIANDO...";
+  submitBtn.style.opacity = "0.7";
+
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch("/booking", {
+      method: "POST",
+      body: formData
+    });
+
+    if (response.ok) {
+      showToast("¡HECHO!", "Tu idea está en camino. Te contactaremos en unas 24h.", "success");
+      form.reset();
+      currentStep = 1;
+      updateFormSteps();
+      document.getElementById("fileNameDisplay").textContent = "Sin archivos seleccionados";
+      
+      // Limpiar selección de diseño si existe
+      const selectedDesignContainer = document.getElementById("selectedDesignContainer");
+      const chosenDesignInput = document.getElementById("chosenDesignInput");
+      const fileUploadSection = document.getElementById("fileUploadSection");
+      const fileInput = document.getElementById("fileInput");
+      const designChosenMessage = document.getElementById("designChosenMessage");
+
+      if (selectedDesignContainer) selectedDesignContainer.style.display = "none";
+      if (chosenDesignInput) chosenDesignInput.value = "";
+      if (fileUploadSection) fileUploadSection.style.display = "block";
+      if (fileInput) fileInput.setAttribute("required", "");
+      if (designChosenMessage) designChosenMessage.style.display = "none";
+      const subtitle = document.getElementById("step3Subtitle");
+      if (subtitle) subtitle.textContent = "Cuéntanos más detalles";
+    } else {
+      try {
+        const errorData = await response.json();
+        showToast("ERROR", `Fallo: ${errorData.message || "Intenta de nuevo."}`, "error");
+      } catch (e) {
+        showToast("ERROR", "Hubo un fallo en la máquina. Intenta enviar de nuevo.", "error");
+      }
+    }
+  } catch (error) {
+    console.error("Error de red:", error);
+    showToast("CONEXIÓN", "No pudimos conectar con el estudio. Revisa tu internet.", "error");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalBtnText;
+    submitBtn.style.opacity = "1";
+  }
 }
 
 // --- LÓGICA DE FORMULARIO MULTI-PASOS ---
@@ -202,6 +267,26 @@ function initScrollReveal() {
 // Ejecutar al cargar la página
 document.addEventListener("DOMContentLoaded", () => {
   initScrollReveal();
+  
+  // Mensaje de bienvenida/versión para confirmar que el código es el nuevo
+  showToast("333 Tattoo", "Sistema actualizado y listo", "success", 2000);
+
+  // Seleccionar el botón de enviar y añadirle el evento click directamente
+  const submitBtn = document.querySelector(".submit-btn");
+  if (submitBtn) {
+    submitBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleFormSubmission();
+    });
+  }
+
+  // También escuchar el evento submit del formulario por si acaso
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      handleFormSubmission();
+    });
+  }
   
   // Re-chequear un poco después por si las imágenes se cargan dinámicamente
   setTimeout(initScrollReveal, 1000);
