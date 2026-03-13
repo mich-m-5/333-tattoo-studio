@@ -172,7 +172,8 @@ app.get("/api/designs", async (req, res) => {
         return {
           ...d.toObject(),
           imageUrl,
-          price: d.price || "Consultar"
+          // Evitar que el frontend muestre "Consultar" si el precio no se ha definido
+          price: (d.price === "Consultar" ? "" : d.price) || ""
         };
       });
 

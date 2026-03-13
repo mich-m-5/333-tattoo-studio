@@ -432,9 +432,9 @@ async function fetchDesigns() {
 
     gallery.innerHTML = designs.map(design => `
       <div class="design-item">
+        ${design.price && design.price !== 'Consultar' ? `<div class="price-badge">${design.price}</div>` : ''}
         <img src="${encodeURI(design.imageUrl)}" alt="Diseño Disponible">
         <div class="design-info">
-          <span class="price">${design.price || 'Consultar'}</span>
           <button type="button" class="choose-design-btn">Escoger</button>
         </div>
       </div>
