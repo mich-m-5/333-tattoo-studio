@@ -14,51 +14,54 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: "333.tattoo.studio.ec@gmail.com",
     pass: "ztkm mmfo zncj vppo"
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
-// Verificar conexión SMTP
+// Verificar conexión SMTP al iniciar
 transporter.verify((error, success) => {
   if (error) {
-    console.log("❌ ERROR SMTP:", error.message);
+    console.log("❌ ERROR SMTP INICIAL:", error.message);
   } else {
-    console.log("✅ SISTEMA DE CORREO LISTO");
+    console.log("✅ SISTEMA DE CORREO LISTO PARA ENVIAR");
   }
 });
 
 async function enviarCorreo(data, filename) {
-  console.log("📬 INICIANDO PROCESO DE CORREO...");
+  console.log("📬 [PASO 1] INICIANDO PROCESO DE CORREO...");
   
   let imagePath = null;
   const logoPath = path.resolve(__dirname, "public", "tattoo", "WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg");
   
   if (filename) {
     imagePath = path.resolve(__dirname, "uploads", filename);
-    console.log("📎 Adjuntando archivo de usuario:", filename);
+    console.log("📎 [PASO 2] Adjuntando archivo subido por usuario:", filename);
   } else if (data.chosenDesignUrl) {
     const cleanPath = data.chosenDesignUrl.replace(/\\/g, "/");
     imagePath = path.resolve(__dirname, "public", cleanPath);
-    console.log("📎 Adjuntando diseño del catálogo:", cleanPath);
+    console.log("📎 [PASO 2] Adjuntando diseño del catálogo:", cleanPath);
   }
 
   const attachments = [];
   
   if (fs.existsSync(logoPath)) {
     attachments.push({ filename: 'logo.jpg', path: logoPath, cid: 'studioLogo' });
-    console.log("✅ Logo encontrado");
+    console.log("✅ [PASO 3] Logo encontrado");
   } else {
-    console.log("⚠️ Logo NO encontrado en:", logoPath);
+    console.log("⚠️ [PASO 3] Logo NO encontrado");
   }
 
   if (imagePath && fs.existsSync(imagePath)) {
     attachments.push({ filename: filename || path.basename(imagePath), path: imagePath });
-    console.log("✅ Imagen de referencia encontrada");
-  } else if (imagePath) {
-    console.log("⚠️ Imagen de referencia NO encontrada en:", imagePath);
+    console.log("✅ [PASO 4] Imagen de referencia encontrada");
   }
 
   const emailHtml = `
@@ -80,7 +83,7 @@ async function enviarCorreo(data, filename) {
   `;
 
   try {
-    console.log("🚀 Enviando mail a Gmail...");
+    console.log("🚀 [PASO 5] Disparando correo hacia Gmail...");
     const info = await transporter.sendMail({
       from: `"333 Tattoo Studio" <333.tattoo.studio.ec@gmail.com>`,
       to: "333.tattoo.studio.ec@gmail.com",
@@ -88,9 +91,9 @@ async function enviarCorreo(data, filename) {
       html: emailHtml,
       attachments: attachments
     });
-    console.log("✨ CORREO ENVIADO CON ÉXITO! ID:", info.messageId);
+    console.log("✨ [PASO 6] ¡CORREO ENVIADO CON ÉXITO! ID:", info.messageId);
   } catch (error) {
-    console.log("❌ ERROR FINAL EN SENDMAIL:", error.message);
+    console.log("❌ [PASO 6] ERROR AL ENVIAR CORREO:", error.message);
   }
 }
 
