@@ -27,22 +27,24 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false,
     minVersion: "TLSv1.2"
   },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  family: 4 // FORZAR IPv4 para evitar el error ENETUNREACH en Render
+  pool: true, // Mantener conexión abierta
+  maxConnections: 1,
+  rateDelta: 20000, // Esperar 20s entre intentos si falla
+  rateLimit: 1,
+  family: 4 // FORZAR IPv4
 });
 
-// Verificar conexión SMTP al iniciar con un pequeño retraso para asegurar que la red esté lista en Render
+// Verificar conexión SMTP al iniciar con un pequeño retraso
 setTimeout(() => {
-  console.log("🔍 [SISTEMA] Verificando conexión de correo (IPv4)...");
+  console.log("🔍 [SISTEMA] Verificando conexión de correo (MODO POOL)...");
   transporter.verify((error, success) => {
     if (error) {
-      console.log("❌ ERROR SMTP INICIAL (IPv4):", error.message);
+      console.log("⚠️ [AVISO] El correo podría tardar o fallar por restricciones de Render:", error.message);
     } else {
-      console.log("✅ SISTEMA DE CORREO LISTO PARA ENVIAR (IPv4)");
+      console.log("✅ SISTEMA DE CORREO LISTO (MODO POOL)");
     }
   });
-}, 5000);
+}, 8000); // 8 segundos para dar tiempo a la red de Render
 
 async function enviarCorreo(data, filename) {
   console.log("📬 [PASO 1] INICIANDO PROCESO DE CORREO...");
