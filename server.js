@@ -13,13 +13,24 @@ if (!fs.existsSync(uploadsDir)) {
   console.log("Carpeta 'uploads' creada");
 }
 
-// --- FUNCIÓN DE NOTIFICACIÓN POR DISCORD (REEMPLAZA AL CORREO) ---
-async function enviarNotificacionDiscord(data) {
-  // REEMPLAZA ESTO CON TU URL DE WEBHOOK DE DISCORD
+// --- FUNCIÓN DE NOTIFICACIÓN POR DISCORD (CON IMAGEN) ---
+async function enviarNotificacionDiscord(data, filename) {
   const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1482146605791711296/gvrOnZDJmtXLncsBJqpm6uYRxCS79h1AWDw8LTsASYLlbKLytr8xGShwJsFzT0KvM8wj";
 
+  let imagePath = null;
+  let finalFilename = "referencia.jpg";
+
+  if (filename) {
+    imagePath = path.join(__dirname, "uploads", filename);
+    finalFilename = filename;
+  } else if (data.chosenDesignUrl) {
+    const cleanPath = data.chosenDesignUrl.replace(/\\/g, "/");
+    imagePath = path.join(__dirname, "public", cleanPath);
+    finalFilename = path.basename(cleanPath);
+  }
+
   const embed = {
-    title: "� NUEVA COTIZACIÓN RECIBIDA",
+    title: "🔥 NUEVA COTIZACIÓN RECIBIDA",
     color: 3447003, // Color azul
     fields: [
       { name: "👤 Nombre", value: data.name || "No indicado", inline: true },
@@ -34,14 +45,24 @@ async function enviarNotificacionDiscord(data) {
   };
 
   try {
+    const formData = new FormData();
+    
+    if (imagePath && fs.existsSync(imagePath)) {
+      embed.image = { url: `attachment://${finalFilename}` };
+      const fileBuffer = fs.readFileSync(imagePath);
+      const blob = new Blob([fileBuffer]);
+      formData.append("file", blob, finalFilename);
+    }
+
+    formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
+
     const response = await fetch(DISCORD_WEBHOOK_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ embeds: [embed] })
+      body: formData
     });
 
     if (response.ok) {
-      console.log("✅ Notificación enviada a Discord correctamente");
+      console.log("✅ Notificación enviada a Discord con éxito");
     } else {
       console.log("❌ Error enviando a Discord:", await response.text());
     }
@@ -141,7 +162,7 @@ app.post("/booking", upload.single("reference"), async (req, res) => {
     console.log("✅ [3] Reserva guardada con éxito");
 
     console.log("➡️ [4] Iniciando envío de notificación a Discord...");
-    enviarNotificacionDiscord(req.body);
+    enviarNotificacionDiscord(req.body, req.file?.filename);
 
     console.log("➡️ [5] Enviando respuesta 'ok' al cliente");
     res.status(200).send("ok");
