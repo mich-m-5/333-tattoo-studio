@@ -16,23 +16,30 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // TLS
   auth: {
     user: "333.tattoo.studio.ec@gmail.com",
     pass: "ztkm mmfo zncj vppo"
+  },
+  tls: {
+    rejectUnauthorized: false,
+    minVersion: "TLSv1.2"
   }
 });
 
 // Verificar conexión SMTP al iniciar con un pequeño retraso para asegurar que la red esté lista en Render
 setTimeout(() => {
+  console.log("🔍 [SISTEMA] Verificando conexión de correo...");
   transporter.verify((error, success) => {
     if (error) {
-      console.log("❌ ERROR SMTP INICIAL (GMAIL SERVICE):", error.message);
+      console.log("❌ ERROR SMTP INICIAL:", error.message);
     } else {
-      console.log("✅ SISTEMA DE CORREO LISTO (GMAIL SERVICE)");
+      console.log("✅ SISTEMA DE CORREO LISTO PARA ENVIAR");
     }
   });
-}, 3000);
+}, 5000); // 5 segundos de espera para que la red de Render se estabilice
 
 async function enviarCorreo(data, filename) {
   console.log("📬 [PASO 1] INICIANDO PROCESO DE CORREO...");
