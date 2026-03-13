@@ -137,31 +137,36 @@ const upload = multer({
   }
 })
 
-app.post("/booking",upload.single("reference"),async(req,res)=>{
+app.post("/booking", upload.single("reference"), async (req, res) => {
+  try {
+    console.log("Datos recibidos en el backend:", req.body);
+    console.log("Archivo recibido:", req.file);
 
-try {
-const booking = new Booking({
-  name: req.body.name,
-  whatsapp: req.body.whatsapp,
-  age: req.body.age,
-  tattooSize: req.body['tattoo-size'],
-  style: req.body.style,
-  idea: req.body.idea,
-  reference: req.file?.filename,
-  chosenDesignUrl: req.body.chosenDesignUrl
-})
+    const booking = new Booking({
+      name: req.body.name,
+      whatsapp: req.body.whatsapp,
+      age: req.body.age,
+      tattooSize: req.body['tattoo-size'],
+      style: req.body.style,
+      idea: req.body.idea,
+      reference: req.file?.filename,
+      chosenDesignUrl: req.body.chosenDesignUrl
+    })
 
-await booking.save()
+    await booking.save()
+    console.log("Reserva guardada en la base de datos.");
 
-// Enviar correo con los datos de la reserva
-enviarCorreo(req.body, req.file?.filename);
+    // Enviar correo con los datos de la reserva
+    await enviarCorreo(req.body, req.file?.filename);
 
-res.status(200).send("ok")
-} catch (error) {
-console.error("Error guardando reserva:", error)
-res.status(500).send("Error en el servidor")
-}
-
+    res.status(200).send("ok")
+  } catch (error) {
+    console.error("ERROR CRÍTICO EN /BOOKING:", error);
+    res.status(500).json({ 
+      error: "Error interno en el servidor", 
+      message: error.message 
+    });
+  }
 })
 
 app.listen(process.env.PORT || 3000, () => {

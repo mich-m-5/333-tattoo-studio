@@ -136,7 +136,14 @@ form.addEventListener("submit", async (e) => {
       const subtitle = document.getElementById("step3Subtitle");
       if (subtitle) subtitle.textContent = "Cuéntanos más detalles";
     } else {
-      showToast("ERROR", "Hubo un fallo en la máquina. Intenta enviar de nuevo.", "error");
+      // Intentar obtener el mensaje de error del servidor
+      try {
+        const errorData = await response.json();
+        console.error("Error del servidor:", errorData);
+        showToast("ERROR", `Fallo: ${errorData.message || "Intenta de nuevo."}`, "error");
+      } catch (e) {
+        showToast("ERROR", "Hubo un fallo en la máquina. Intenta enviar de nuevo.", "error");
+      }
     }
   } catch (error) {
     console.error("Error:", error);
