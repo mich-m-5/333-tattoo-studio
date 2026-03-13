@@ -3,8 +3,15 @@ const mongoose = require("mongoose")
 const multer = require("multer")
 const nodemailer = require("nodemailer")
 const path = require("path")
-const fs = require("fs") // Movido al inicio
+const fs = require("fs")
 const app = express()
+
+// Asegurar que la carpeta 'uploads' exista en Render
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+  console.log("Carpeta 'uploads' creada");
+}
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -157,8 +164,6 @@ res.status(500).send("Error en el servidor")
 
 })
 
-app.listen(3000,()=>{
-
-console.log("Servidor en http://localhost:3000")
-
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Servidor corriendo en el puerto ${process.env.PORT || 3000}`)
 })
