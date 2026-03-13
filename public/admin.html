@@ -250,6 +250,7 @@
             <div class="admin-tabs">
                 <button class="tab-btn active" onclick="switchTab('designs')">DISEÑOS</button>
                 <button class="tab-btn" onclick="switchTab('portfolio')">PORTAFOLIO</button>
+                <button class="tab-btn" onclick="switchTab('reviews')">RESEÑAS</button>
             </div>
 
             <!-- TAB DISEÑOS -->
@@ -286,6 +287,17 @@
                     </form>
                 </div>
                 <div id="portfolioList" class="grid-list">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <!-- TAB RESEÑAS -->
+            <div id="tab-reviews" class="tab-content">
+                <div class="upload-card">
+                    <h3>Moderación de Reseñas</h3>
+                    <p style="color: var(--text-dim); font-size: 14px;">Aquí puedes ver y eliminar las reseñas de los clientes si es necesario.</p>
+                </div>
+                <div id="reviewsListAdmin" class="grid-list">
                     <!-- Dinámico -->
                 </div>
             </div>
@@ -330,7 +342,7 @@
         }
 
         async function loadAll() {
-            const success = await Promise.all([loadDesigns(), loadPortfolio()]);
+            const success = await Promise.all([loadDesigns(), loadPortfolio(), loadReviews()]);
             if (success.every(s => s)) {
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('dashboardSection').style.display = 'block';
@@ -371,6 +383,32 @@
                         <div class="item-info">
                             <span style="font-size:12px; color:#555;">Tatuaje Realizado</span>
                             <button class="btn btn-danger btn-sm" onclick="deleteItem('portfolio', '${p._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                return true;
+            } catch (e) { return false; }
+        }
+
+        async function loadReviews() {
+            try {
+                const res = await fetch('/api/reviews');
+                const data = await res.json();
+                const list = document.getElementById('reviewsListAdmin');
+                list.innerHTML = data.map(r => `
+                    <div class="item-card">
+                        <div style="padding: 20px;">
+                            <h4 style="margin:0 0 5px 0;">${r.name}</h4>
+                            <div style="color: #f1c40f; font-size: 12px; margin-bottom: 10px;">
+                                ${'<i class="fas fa-star"></i>'.repeat(r.rating)}
+                            </div>
+                            <p style="font-size: 13px; color: #ccc; font-style: italic; margin:0;">"${r.comment}"</p>
+                        </div>
+                        <div class="item-info" style="border-top: 1px solid var(--border);">
+                            <span style="font-size:11px; color:#555;">${new Date(r.createdAt).toLocaleDateString()}</span>
+                            <button class="btn btn-danger btn-sm" onclick="deleteItem('reviews', '${r._id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -424,7 +462,9 @@
             });
             if (res.ok) {
                 showToast("Eliminado correctamente");
-                type === 'designs' ? loadDesigns() : loadPortfolio();
+                if (type === 'designs') loadDesigns();
+                else if (type === 'portfolio') loadPortfolio();
+                else if (type === 'reviews') loadReviews();
             } else {
                 showToast("Error al eliminar", "error");
             }

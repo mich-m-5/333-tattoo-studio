@@ -173,6 +173,15 @@ const portfolioSchema = new mongoose.Schema({
 })
 const Portfolio = mongoose.model("Portfolio", portfolioSchema)
 
+// --- NUEVO ESQUEMA PARA RESEÑAS ---
+const reviewSchema = new mongoose.Schema({
+  name: String,
+  rating: Number,
+  comment: String,
+  createdAt: { type: Date, default: Date.now }
+})
+const Review = mongoose.model("Review", reviewSchema)
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Si es un diseño de admin va a 'public/tattoo', si es referencia de cliente a 'uploads'
@@ -306,6 +315,49 @@ app.delete("/api/admin/portfolio/:id", async (req, res) => {
     } else {
       res.status(404).json({ error: "Imagen no encontrada" });
     }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- RUTAS DE RESEÑAS ---
+
+// Obtener todas las reseñas (Público)
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const reviews = await Review.find().sort({ createdAt: -1 });
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Agregar una reseña (Público)
+app.post("/api/reviews", async (req, res) => {
+  const { name, rating, comment } = req.body;
+  if (!name || !rating || !comment) {
+    return res.status(400).json({ error: "Todos los campos son obligatorios" });
+  }
+
+  try {
+    const newReview = new Review({ name, rating, comment });
+    await newReview.save();
+    res.status(201).json(newReview);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Eliminar reseña (Admin)
+app.delete("/api/admin/reviews/:id", async (req, res) => {
+  const { password } = req.body;
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Contraseña incorrecta" });
+  }
+
+  try {
+    await Review.findByIdAndDelete(req.params.id);
+    res.json({ message: "Reseña eliminada" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

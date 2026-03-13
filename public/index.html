@@ -5,8 +5,14 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="333 Tattoo Studio en Quito. Especialistas en tatuajes blackwork y diseños personalizados. Reserva tu tatuaje en Quito.">
+<meta name="keywords" content="tatuajes Quito, tattoo Quito, tatuador Quito, tattoo studio Quito, estudio tatuajes Quito, tatuajes Conocoto, tattoo Conocoto, tatuador Conocoto, tatuajes Ecuador, tattoo Ecuador, blackwork Quito, fineline Quito, tatuajes minimalistas Quito, tatuajes personalizados Quito, tattoo artist Quito, tatuajes cerca de mi, tattoo shop Quito, estudio tattoo Quito, tatuajes realistas Quito, tatuajes pequeños Quito, tatuajes grandes Quito, tattoo design Quito, tatuajes profesionales Quito, mejores tatuadores Quito, tatuajes arte Quito, tattoo studio Ecuador, tattoo shop Ecuador, tatuajes blackwork Ecuador, tatuajes fineline Ecuador, tatuajes personalizados Ecuador">
 
-<title>333 Tattoo Studio | Quito</title>
+
+
+
+<title>333 Tattoo Studio | Tatuajes en Quito | Tattoo Studio Quito</title>
+
 
 <link rel="icon" href="tattoo/WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg" type="image/jpeg">
 <link rel="stylesheet" href="styles.css">
@@ -37,6 +43,14 @@
 
 <h2>Blackwork • Black and grey • Flash Tattoo • Letering </h2>
 <p>Quito – Conocoto</p>
+<h2>Estudio de tatuajes en Quito</h2>
+
+<p>
+333 Tattoo Studio es un estudio de tatuajes en Quito especializado en tatuajes personalizados, 
+blackwork y fine line. Nuestro objetivo es crear diseños únicos adaptados a cada cliente.
+Si buscas un tatuador en Quito que cuide cada detalle, en 333 Tattoo Studio transformamos
+tu idea en arte permanente.
+</p>
 
 </section>
 
@@ -72,6 +86,44 @@
   <div id="designsGallery" class="gallery designs-gallery">
     <!-- Los diseños se cargarán aquí dinámicamente -->
     <p style="grid-column: 1/-1; text-align: center; color: #888;">Cargando diseños...</p>
+  </div>
+</section>
+
+<section id="reviews">
+  <h2>Reseñas de Clientes</h2>
+  <p>Lo que dicen los que ya pasaron por 333 Tattoo Studio</p>
+  
+  <div class="reviews-container">
+    <div id="reviewsList" class="reviews-grid">
+      <!-- Reseñas cargadas dinámicamente -->
+      <p style="text-align: center; color: #888;">Cargando reseñas...</p>
+    </div>
+
+    <div class="add-review">
+      <h3>DÉJANOS TU RESEÑA</h3>
+      <form id="reviewForm">
+        <div class="input-field">
+          <label>TU NOMBRE</label>
+          <input type="text" id="reviewName" required placeholder="¿Cómo te llamas?">
+        </div>
+        <div class="rating-input">
+          <label>PUNTUACIÓN</label>
+          <div class="stars" id="starInput">
+            <i class="fas fa-star" data-value="1"></i>
+            <i class="fas fa-star" data-value="2"></i>
+            <i class="fas fa-star" data-value="3"></i>
+            <i class="fas fa-star" data-value="4"></i>
+            <i class="fas fa-star" data-value="5"></i>
+          </div>
+          <input type="hidden" id="ratingValue" value="5">
+        </div>
+        <div class="input-field">
+          <label>TU COMENTARIO</label>
+          <textarea id="reviewComment" required placeholder="Cuéntanos tu experiencia..."></textarea>
+        </div>
+        <button type="submit" class="btn-review">PUBLICAR RESEÑA</button>
+      </form>
+    </div>
   </div>
 </section>
 

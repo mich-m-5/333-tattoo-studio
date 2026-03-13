@@ -271,6 +271,125 @@ function initScrollReveal() {
   });
 }
 
+// --- LÓGICA DE RESEÑAS ---
+async function fetchReviews() {
+  const reviewsList = document.getElementById("reviewsList");
+  if (!reviewsList) return;
+
+  try {
+    const response = await fetch("/api/reviews");
+    const reviews = await response.json();
+
+    if (reviews.length === 0) {
+      reviewsList.innerHTML = '<p style="text-align: center; color: #888;">Sé el primero en dejar una reseña.</p>';
+      return;
+    }
+
+    reviewsList.innerHTML = reviews.map(r => `
+      <div class="review-card">
+        <div class="review-header">
+          <span class="review-name">${r.name}</span>
+          <div class="review-stars">
+            ${'<i class="fas fa-star"></i>'.repeat(r.rating)}
+            ${'<i class="far fa-star"></i>'.repeat(5 - r.rating)}
+          </div>
+        </div>
+        <p class="review-comment">"${r.comment}"</p>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error("Error cargando reseñas:", error);
+  }
+}
+
+// Inicializar selección de estrellas
+function initStarRating() {
+  const stars = document.querySelectorAll("#starInput i");
+  const ratingInput = document.getElementById("ratingValue");
+
+  // Valor por defecto (5 estrellas)
+  updateStars(5);
+
+  stars.forEach(star => {
+    star.addEventListener("click", () => {
+      const val = parseInt(star.getAttribute("data-value"));
+      ratingInput.value = val;
+      updateStars(val);
+    });
+
+    star.addEventListener("mouseover", () => {
+      const val = parseInt(star.getAttribute("data-value"));
+      updateStars(val);
+    });
+
+    star.addEventListener("mouseout", () => {
+      updateStars(parseInt(ratingInput.value));
+    });
+  });
+
+  function updateStars(val) {
+    stars.forEach(s => {
+      const sVal = parseInt(s.getAttribute("data-value"));
+      if (sVal <= val) {
+        s.classList.add("active", "fas");
+        s.classList.remove("far");
+      } else {
+        s.classList.remove("active", "fas");
+        s.classList.add("far");
+      }
+    });
+  }
+}
+
+async function handleReviewSubmission(e) {
+  e.preventDefault();
+  const name = document.getElementById("reviewName").value;
+  const rating = document.getElementById("ratingValue").value;
+  const comment = document.getElementById("reviewComment").value;
+
+  const btn = e.target.querySelector("button");
+  btn.disabled = true;
+  btn.textContent = "PUBLICANDO...";
+
+  try {
+    const response = await fetch("/api/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, rating, comment })
+    });
+
+    if (response.ok) {
+      showToast("¡GRACIAS!", "Tu reseña ha sido publicada.", "success");
+      document.getElementById("reviewForm").reset();
+      updateStars(5); // Reset estrellas
+      document.getElementById("ratingValue").value = 5;
+      fetchReviews();
+    } else {
+      showToast("ERROR", "No se pudo publicar la reseña.", "error");
+    }
+  } catch (error) {
+    showToast("ERROR", "Error de conexión.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "PUBLICAR RESEÑA";
+  }
+}
+
+// Re-declaramos updateStars dentro de handleReviewSubmission o la hacemos accesible
+function updateStars(val) {
+  const stars = document.querySelectorAll("#starInput i");
+  stars.forEach(s => {
+    const sVal = parseInt(s.getAttribute("data-value"));
+    if (sVal <= val) {
+      s.classList.add("active", "fas");
+      s.classList.remove("far");
+    } else {
+      s.classList.remove("active", "fas");
+      s.classList.add("far");
+    }
+  });
+}
+
 // --- LÓGICA DE CARGA DE DISEÑOS DINÁMICOS ---
 async function fetchPortfolio() {
   const gallery = document.getElementById("portfolioGallery");
@@ -334,6 +453,13 @@ async function fetchDesigns() {
 document.addEventListener("DOMContentLoaded", () => {
   fetchPortfolio();
   fetchDesigns();
+  fetchReviews();
+  initStarRating();
+
+  const reviewForm = document.getElementById("reviewForm");
+  if (reviewForm) {
+    reviewForm.addEventListener("submit", handleReviewSubmission);
+  }
   initScrollReveal();
   
   // Mensaje de bienvenida/versión para confirmar que el código es el nuevo
