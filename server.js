@@ -93,9 +93,26 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static("public"))
 app.use("/uploads", express.static("uploads")) // Permitir ver las imágenes subidas
 
-mongoose.connect("mongodb+srv://michmuzo55_db_user:basquetian2021m@cluster0.6qdrrgb.mongodb.net/tattooStudio?retryWrites=true&w=majority")
-.then(() => console.log("Conectado a MongoDB Atlas"))
-.catch(err => console.error("Error conectando:", err))
+const mongoURI = "mongodb+srv://michmuzo55_db_user:basquetian2021m@cluster0.6qdrrgb.mongodb.net/tattooStudio?retryWrites=true&w=majority";
+
+mongoose.connect(mongoURI, {
+  serverSelectionTimeoutMS: 5000, // Tiempo máximo para conectar antes de fallar
+  socketTimeoutMS: 45000, // Tiempo de espera para operaciones
+})
+.then(() => console.log("✅ Conectado exitosamente a MongoDB Atlas"))
+.catch(err => {
+  console.error("❌ ERROR FATAL AL CONECTAR A MONGODB:", err.message);
+  console.error("Detalle del error:", err);
+});
+
+// Monitorear cambios en la conexión
+mongoose.connection.on('error', err => {
+  console.error('⚠️ Error en la conexión de MongoDB:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️ MongoDB desconectado. Intentando reconectar...');
+});
 
 const bookingSchema = new mongoose.Schema({
   name: String,
@@ -139,6 +156,15 @@ const upload = multer({
 
 app.post("/booking", upload.single("reference"), async (req, res) => {
   try {
+    // Verificar si la base de datos está conectada
+    if (mongoose.connection.readyState !== 1) {
+      console.error("❌ ERROR: MongoDB no está conectado (readyState: " + mongoose.connection.readyState + ")");
+      return res.status(503).json({ 
+        error: "Base de datos desconectada", 
+        message: "El servidor no puede conectar con la base de datos de MongoDB Atlas. Revisa el Network Access en Atlas." 
+      });
+    }
+
     console.log("Datos recibidos en el backend:", req.body);
     console.log("Archivo recibido:", req.file);
 
