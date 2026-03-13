@@ -4,8 +4,20 @@ const multer = require("multer")
 const nodemailer = require("nodemailer")
 const path = require("path")
 const fs = require("fs")
-const dns = require("dns")
-dns.setDefaultResultOrder("ipv4first") // FORZAR IPv4 para evitar el error ENETUNREACH en Render
+
+// --- TRUCO MAESTRO: FORZAR IPv4 EN TODO EL SERVIDOR ---
+const dns = require("dns");
+const oldLookup = dns.lookup;
+dns.lookup = function(host, opts, cb) {
+  if (typeof opts === "function") return oldLookup(host, { family: 4 }, opts);
+  if (typeof opts === "object") {
+    opts.family = 4;
+  } else {
+    opts = { family: 4 };
+  }
+  return oldLookup(host, opts, cb);
+};
+
 const app = express()
 
 // Asegurar que la carpeta 'uploads' exista en Render
@@ -16,35 +28,24 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // TLS
+  service: "gmail",
   auth: {
     user: "333.tattoo.studio.ec@gmail.com",
     pass: "ztkm mmfo zncj vppo"
-  },
-  tls: {
-    rejectUnauthorized: false,
-    minVersion: "TLSv1.2"
-  },
-  pool: true, // Mantener conexión abierta
-  maxConnections: 1,
-  rateDelta: 20000, // Esperar 20s entre intentos si falla
-  rateLimit: 1,
-  family: 4 // FORZAR IPv4
+  }
 });
 
-// Verificar conexión SMTP al iniciar con un pequeño retraso
+// Verificar conexión SMTP con retraso
 setTimeout(() => {
-  console.log("🔍 [SISTEMA] Verificando conexión de correo (MODO POOL)...");
+  console.log("🔍 [SISTEMA] Verificando conexión (IPv4 FORZADO)...");
   transporter.verify((error, success) => {
     if (error) {
-      console.log("⚠️ [AVISO] El correo podría tardar o fallar por restricciones de Render:", error.message);
+      console.log("⚠️ [AVISO] Render sigue bloqueando la salida de correo:", error.message);
     } else {
-      console.log("✅ SISTEMA DE CORREO LISTO (MODO POOL)");
+      console.log("✅ SISTEMA DE CORREO LISTO (IPv4 FORZADO)");
     }
   });
-}, 8000); // 8 segundos para dar tiempo a la red de Render
+}, 8000);
 
 async function enviarCorreo(data, filename) {
   console.log("📬 [PASO 1] INICIANDO PROCESO DE CORREO...");
