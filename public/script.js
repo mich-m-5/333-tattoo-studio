@@ -241,7 +241,11 @@ document.addEventListener("DOMContentLoaded", () => {
   chooseBtns.forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation(); // Evitar abrir el lightbox al elegir
-      const imgUrl = btn.getAttribute("data-img");
+      
+      // Obtener dinámicamente la imagen del mismo contenedor (design-item)
+      const designItem = btn.closest(".design-item");
+      const img = designItem.querySelector("img");
+      const imgUrl = img.getAttribute("src"); // Usamos el src actual de la imagen
       
       // Mostrar previsualización en el formulario
       selectedDesignImg.src = imgUrl;
