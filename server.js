@@ -84,52 +84,6 @@ mongoose.connect(mongoURI, {
 })
 .then(async () => {
   console.log("✅ Conectado exitosamente a MongoDB Atlas");
-  // --- MIGRACIÓN DE IMÁGENES EXISTENTES ---
-  try {
-    const portfolioImages = [
-      "WhatsApp Image 2026-03-11 at 6.01.05 PM.jpeg",
-      "WhatsApp Image 2026-03-11 at 6.01.06 PM.jpeg",
-      "WhatsApp Image 2026-03-11 at 6.01.07 PM.jpeg",
-      "{0F9EB0D1-05CF-46CE-95D0-C7FC488864CF}.png",
-      "{28E93EA6-8D82-4103-8A8A-131B52F93574}.png",
-      "WhatsApp Image 2026-03-11 at 6.09.18 PM.jpeg",
-      "{57FAC4FB-88B4-468D-A9D8-544C47495BF8}.png",
-      "WhatsApp Image 2026-03-11 at 6.21.30 PM.jpeg",
-      "{904EEC70-8BEA-441A-A6CF-11293394EC0D}.png",
-      "WhatsApp Image 2026-03-11 at 6.01.27 PM.jpeg",
-      "{0442B556-6E22-4ED6-956E-757575D0D161}.png",
-      "{443DB1F3-3AD2-4B73-8B48-DBC599877CB9}.png",
-      "WhatsApp Image 2026-03-10 at 6.25.35 PM.jpeg",
-      "{30CC2B37-CF96-4707-A6EB-8195944252F2}.png",
-      "{C5FC9957-69D1-4845-B387-FBE6DC6D7CA0}.png"
-    ];
-
-    for (const imgName of portfolioImages) {
-      const imageUrl = `tattoo/${imgName}`;
-      const exists = await Portfolio.findOne({ imageUrl });
-      if (!exists) {
-        await new Portfolio({ imageUrl }).save();
-        console.log(`🖼️ Imagen de portafolio migrada: ${imgName}`);
-      }
-    }
-
-    const designImages = [
-      "WhatsApp Image 2026-03-12 at 7.28.28 PM.jpeg",
-      "WhatsApp Image 2026-03-12 at 7.28.29 PM.jpeg",
-      "WhatsApp Image 2026-03-12 at 7.28.33 PM.jpeg"
-    ];
-
-    for (const imgName of designImages) {
-      const imageUrl = `tattoo/${imgName}`;
-      const exists = await Design.findOne({ imageUrl });
-      if (!exists) {
-        await new Design({ imageUrl, price: "Consultar" }).save();
-        console.log(`🎨 Diseño migrado: ${imgName}`);
-      }
-    }
-  } catch (err) {
-    console.error("❌ Error en la migración:", err.message);
-  }
 })
 .catch(err => {
   console.error("❌ ERROR FATAL AL CONECTAR A MONGODB:", err.message);
