@@ -405,7 +405,7 @@ async function fetchPortfolio() {
     }
 
     gallery.innerHTML = portfolio.map(item => `
-      <img src="${item.imageUrl}" alt="Tatuaje Realizado" class="reveal">
+      <img src="${encodeURI(item.imageUrl)}" alt="Tatuaje Realizado" class="reveal">
     `).join('');
 
     // Re-inicializar scroll reveal
@@ -432,9 +432,9 @@ async function fetchDesigns() {
 
     gallery.innerHTML = designs.map(design => `
       <div class="design-item">
-        <img src="${design.imageUrl}" alt="Diseño Disponible">
+        <img src="${encodeURI(design.imageUrl)}" alt="Diseño Disponible">
         <div class="design-info">
-          <span class="price">${design.price}</span>
+          <span class="price">${design.price || 'Consultar'}</span>
           <button type="button" class="choose-design-btn">Escoger</button>
         </div>
       </div>

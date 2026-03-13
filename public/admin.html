@@ -359,9 +359,9 @@
                 const list = document.getElementById('designsList');
                 list.innerHTML = data.map(d => `
                     <div class="item-card">
-                        <img src="${d.imageUrl}">
+                        <img src="${encodeURI(d.imageUrl)}" alt="Diseño">
                         <div class="item-info">
-                            <span class="item-price">${d.price}</span>
+                            <span class="item-price">${d.price || 'Consultar'}</span>
                             <button class="btn btn-danger btn-sm" onclick="deleteItem('designs', '${d._id}')">
                                 <i class="fas fa-trash"></i>
                             </button>

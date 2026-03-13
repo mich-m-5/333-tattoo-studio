@@ -164,8 +164,19 @@ const ADMIN_PASSWORD = "333adminpassword"; // Cambia esto por la contraseña que
 // Obtener todos los diseños (Público)
 app.get("/api/designs", async (req, res) => {
   try {
-    const designs = await Design.find().sort({ createdAt: -1 });
-    res.json(designs);
+      const designs = await Design.find().sort({ createdAt: -1 });
+
+      // Normalizar las rutas para que siempre sean accesibles desde el cliente
+      const normalized = designs.map(d => {
+        const imageUrl = d.imageUrl?.startsWith("/") ? d.imageUrl : `/${d.imageUrl}`;
+        return {
+          ...d.toObject(),
+          imageUrl,
+          price: d.price || "Consultar"
+        };
+      });
+
+      res.json(normalized);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -183,8 +194,8 @@ app.post("/api/admin/designs", upload.single("image"), async (req, res) => {
 
   try {
     const newDesign = new Design({
-      imageUrl: `tattoo/${req.file.filename}`,
-      price: price || "Consultar"
+      imageUrl: `/tattoo/${req.file.filename}`,
+      price: (price ?? "").toString().trim()
     });
     await newDesign.save();
     res.status(201).json(newDesign);
@@ -223,7 +234,11 @@ app.delete("/api/admin/designs/:id", async (req, res) => {
 app.get("/api/portfolio", async (req, res) => {
   try {
     const portfolio = await Portfolio.find().sort({ createdAt: -1 });
-    res.json(portfolio);
+    const normalized = portfolio.map(p => ({
+      ...p.toObject(),
+      imageUrl: p.imageUrl?.startsWith("/") ? p.imageUrl : `/${p.imageUrl}`
+    }));
+    res.json(normalized);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -241,7 +256,7 @@ app.post("/api/admin/portfolio", upload.single("image"), async (req, res) => {
 
   try {
     const newPortfolio = new Portfolio({
-      imageUrl: `tattoo/${req.file.filename}`
+      imageUrl: `/tattoo/${req.file.filename}`
     });
     await newPortfolio.save();
     res.status(201).json(newPortfolio);
