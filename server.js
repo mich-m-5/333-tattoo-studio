@@ -156,18 +156,14 @@ const upload = multer({
 
 app.post("/booking", upload.single("reference"), async (req, res) => {
   try {
-    // Verificar si la base de datos está conectada
+    console.log("➡️ [1] Recibida petición POST en /booking");
+    
     if (mongoose.connection.readyState !== 1) {
-      console.error("❌ ERROR: MongoDB no está conectado (readyState: " + mongoose.connection.readyState + ")");
-      return res.status(503).json({ 
-        error: "Base de datos desconectada", 
-        message: "El servidor no puede conectar con la base de datos de MongoDB Atlas. Revisa el Network Access en Atlas." 
-      });
+      console.error("❌ ERROR: MongoDB no conectado");
+      return res.status(503).json({ error: "Base de datos desconectada" });
     }
 
-    console.log("Datos recibidos en el backend:", req.body);
-    console.log("Archivo recibido:", req.file);
-
+    console.log("➡️ [2] Guardando en base de datos...");
     const booking = new Booking({
       name: req.body.name,
       whatsapp: req.body.whatsapp,
@@ -177,19 +173,25 @@ app.post("/booking", upload.single("reference"), async (req, res) => {
       idea: req.body.idea,
       reference: req.file?.filename,
       chosenDesignUrl: req.body.chosenDesignUrl
-    })
+    });
 
-    await booking.save()
-    console.log("Reserva guardada en la base de datos.");
+    await booking.save();
+    console.log("✅ [3] Reserva guardada con éxito");
 
-    // Enviar correo con los datos de la reserva
-    await enviarCorreo(req.body, req.file?.filename);
+    console.log("➡️ [4] Iniciando envío de correo...");
+    // No esperamos (await) el correo para responder rápido al cliente, 
+    // pero capturamos errores internos.
+    enviarCorreo(req.body, req.file?.filename)
+      .then(() => console.log("✅ [5] Correo enviado en segundo plano"))
+      .catch(err => console.error("❌ [5] Error enviando correo:", err));
 
-    res.status(200).send("ok")
+    console.log("➡️ [6] Enviando respuesta 'ok' al cliente");
+    res.status(200).send("ok");
+
   } catch (error) {
-    console.error("ERROR CRÍTICO EN /BOOKING:", error);
+    console.error("❌ ERROR CRÍTICO EN /BOOKING:", error);
     res.status(500).json({ 
-      error: "Error interno en el servidor", 
+      error: "Error interno", 
       message: error.message 
     });
   }

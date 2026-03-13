@@ -56,11 +56,18 @@ async function handleFormSubmission() {
 
   const formData = new FormData(form);
 
+  // Crear un controlador para cancelar la petición si tarda demasiado
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos máximo
+
   try {
     const response = await fetch("/booking", {
       method: "POST",
-      body: formData
+      body: formData,
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (response.ok) {
       showToast("¡HECHO!", "Tu idea está en camino. Te contactaremos en unas 24h.", "success");
