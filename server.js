@@ -159,7 +159,7 @@ const upload = multer({
 })
 
 // --- RUTAS DE ADMINISTRACIÓN (DISEÑOS) ---
-const ADMIN_PASSWORD = "333adminpassword"; // Cambia esto por la contraseña que quieras
+const ADMIN_PASSWORD = "333tattoo333"; // Cambia esto por la contraseña que quieras
 
 // Obtener todos los diseños (Público)
 app.get("/api/designs", async (req, res) => {
@@ -172,8 +172,7 @@ app.get("/api/designs", async (req, res) => {
         return {
           ...d.toObject(),
           imageUrl,
-          // Evitar que el frontend muestre "Consultar" si el precio no se ha definido
-          price: (d.price === "Consultar" ? "" : d.price) || ""
+          price: d.price || ""
         };
       });
 
