@@ -79,8 +79,9 @@ app.use("/uploads", express.static("uploads")) // Permitir ver las imágenes sub
 const mongoURI = "mongodb+srv://michmuzo55_db_user:basquetian2021m@cluster0.6qdrrgb.mongodb.net/tattooStudio?retryWrites=true&w=majority";
 
 mongoose.connect(mongoURI, {
-  serverSelectionTimeoutMS: 5000, // Tiempo máximo para conectar antes de fallar
-  socketTimeoutMS: 45000, // Tiempo de espera para operaciones
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 45000,
+  family: 4
 })
 .then(async () => {
   console.log("✅ Conectado exitosamente a MongoDB Atlas");
@@ -159,26 +160,27 @@ const upload = multer({
 })
 
 // --- RUTAS DE ADMINISTRACIÓN (DISEÑOS) ---
-const ADMIN_PASSWORD = "333tattoo333"; // Cambia esto por la contraseña que quieras
+const ADMIN_PASSWORD = "333adminpassword"; // Cambia esto por la contraseña que quieras
 
 // Obtener todos los diseños (Público)
 app.get("/api/designs", async (req, res) => {
   try {
-      const designs = await Design.find().sort({ createdAt: -1 });
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json([]);
+    }
 
-      // Normalizar las rutas para que siempre sean accesibles desde el cliente
-      const normalized = designs.map(d => {
-        const imageUrl = d.imageUrl?.startsWith("/") ? d.imageUrl : `/${d.imageUrl}`;
-        return {
-          ...d.toObject(),
-          imageUrl,
-          price: d.price || ""
-        };
-      });
-
-      res.json(normalized);
+    const designs = await Design.find().sort({ createdAt: -1 });
+    const normalized = designs.map(d => {
+      return {
+        ...d.toObject(),
+        imageUrl: d.imageUrl?.startsWith("/") ? d.imageUrl : `/${d.imageUrl}`,
+        price: d.price || ""
+      };
+    });
+    res.json(normalized);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error /api/designs:", error);
+    res.status(500).json([]);
   }
 });
 
@@ -233,6 +235,9 @@ app.delete("/api/admin/designs/:id", async (req, res) => {
 // Obtener todo el portafolio (Público)
 app.get("/api/portfolio", async (req, res) => {
   try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json([]);
+    }
     const portfolio = await Portfolio.find().sort({ createdAt: -1 });
     const normalized = portfolio.map(p => ({
       ...p.toObject(),
@@ -240,7 +245,8 @@ app.get("/api/portfolio", async (req, res) => {
     }));
     res.json(normalized);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error /api/portfolio:", error);
+    res.status(500).json([]);
   }
 });
 
