@@ -181,72 +181,7 @@ if (fileInput) {
   });
 }
 
-// Envío final del formulario
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  console.log("Evento de envío capturado");
-
-  const termsCheckbox = form.querySelector('input[type="checkbox"]');
-  if (!termsCheckbox.checked) {
-    showToast("¡Hey!", "Debes aceptar las políticas y condiciones para continuar.", "error");
-    return;
-  }
-
-  const submitBtn = form.querySelector(".submit-btn");
-  const originalBtnText = submitBtn.textContent;
-  
-  // Feedback visual
-  submitBtn.disabled = true;
-  submitBtn.textContent = "ENVIANDO...";
-  submitBtn.style.opacity = "0.7";
-
-  const formData = new FormData(form);
-
-  try {
-    console.log("Iniciando petición fetch a /booking");
-    const response = await fetch("/booking", {
-      method: "POST",
-      body: formData
-    });
-
-    if (response.ok) {
-      console.log("Respuesta 200 recibida con éxito");
-      showToast("¡HECHO!", "Tu idea está en camino. Te contactaremos en unas 24h.", "success");
-      form.reset();
-      currentStep = 1;
-      updateFormSteps();
-      document.getElementById("fileNameDisplay").textContent = "Sin archivos seleccionados";
-      
-      // Limpiar selección de diseño si existe
-      if (selectedDesignContainer) selectedDesignContainer.style.display = "none";
-      if (chosenDesignInput) chosenDesignInput.value = "";
-      if (fileUploadSection) fileUploadSection.style.display = "block";
-      if (fileInput) fileInput.setAttribute("required", "");
-      if (designChosenMessage) designChosenMessage.style.display = "none";
-      const subtitle = document.getElementById("step3Subtitle");
-      if (subtitle) subtitle.textContent = "Cuéntanos más detalles";
-    } else {
-      // Intentar obtener el mensaje de error del servidor
-      try {
-        const errorData = await response.json();
-        console.error("Error detallado del servidor:", errorData);
-        showToast("ERROR", `Fallo: ${errorData.message || "Intenta de nuevo."}`, "error");
-      } catch (e) {
-        showToast("ERROR", "Hubo un fallo en la máquina. Intenta enviar de nuevo.", "error");
-      }
-    }
-  } catch (error) {
-    console.error("Error de red o conexión:", error);
-    showToast("CONEXIÓN", "No pudimos conectar con el estudio. Revisa tu internet.", "error");
-  } finally {
-    // Restaurar botón
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalBtnText;
-    submitBtn.style.opacity = "1";
-  }
-});
-
-// --- FUNCIONALIDAD PARA REVELAR IMÁGENES AL HACER SCROLL ---
+// --- LÓGICA DE FORMULARIO MULTI-PASOS ---
 function initScrollReveal() {
   const items = document.querySelectorAll(".gallery img:not(.reveal), .design-item:not(.reveal)");
   

@@ -27,7 +27,7 @@ async function enviarNotificacionDiscord(data, filename) {
     imagePath = path.join(__dirname, "uploads", filename);
     finalFilename = filename;
   } else if (data.chosenDesignUrl) {
-    const cleanPath = data.chosenDesignUrl.replace(/\\/g, "/");
+    const cleanPath = decodeURIComponent(data.chosenDesignUrl).replace(/\\/g, "/");
     imagePath = path.join(__dirname, "public", cleanPath);
     finalFilename = path.basename(cleanPath);
   }
@@ -51,14 +51,18 @@ async function enviarNotificacionDiscord(data, filename) {
     const formData = new FormData();
     
     if (imagePath && fs.existsSync(imagePath)) {
+      console.log("📎 Adjuntando imagen a Discord:", imagePath);
       embed.image = { url: `attachment://${finalFilename}` };
       const fileBuffer = fs.readFileSync(imagePath);
       const blob = new Blob([fileBuffer]);
       formData.append("file", blob, finalFilename);
+    } else {
+      console.log("ℹ️ No se adjuntará imagen (no existe o no se proporcionó)");
     }
 
     formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
 
+    console.log("🚀 Enviando petición a Discord...");
     const response = await fetch(DISCORD_WEBHOOK_URL, {
       method: "POST",
       body: formData
@@ -67,10 +71,12 @@ async function enviarNotificacionDiscord(data, filename) {
     if (response.ok) {
       console.log("✅ Notificación enviada a Discord con éxito");
     } else {
-      console.log("❌ Error enviando a Discord:", await response.text());
+      const errorText = await response.text();
+      console.error("❌ Error enviando a Discord (Respuesta no OK):", errorText);
     }
   } catch (error) {
-    console.error("❌ Error de red Discord:", error.message);
+    console.error("❌ Error de red Discord (Excepción):", error.message);
+    console.error(error);
   }
 }
 
@@ -365,7 +371,7 @@ app.post("/booking", upload.single("reference"), async (req, res) => {
     console.log("✅ [3] Reserva guardada con éxito");
 
     console.log("➡️ [4] Iniciando envío de notificación a Discord...");
-    enviarNotificacionDiscord(req.body, req.file?.filename);
+    await enviarNotificacionDiscord(req.body, req.file?.filename);
 
     console.log("➡️ [5] Enviando respuesta 'ok' al cliente");
     res.status(200).send("ok");
