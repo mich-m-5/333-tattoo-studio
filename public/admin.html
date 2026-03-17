@@ -327,10 +327,27 @@
             }, 100);
         }
 
-        function login() {
-            password = document.getElementById('adminPassword').value;
-            // Validamos contra una carga de datos
-            loadAll();
+        async function login() {
+            const inputPassword = document.getElementById('adminPassword').value;
+            try {
+                const res = await fetch('/api/admin/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: inputPassword })
+                });
+                
+                if (res.ok) {
+                    password = inputPassword;
+                    await loadAll();
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('dashboardSection').style.display = 'block';
+                    document.getElementById('logoutBtn').style.display = 'block';
+                } else {
+                    showToast("Contraseña incorrecta", "error");
+                }
+            } catch (e) {
+                showToast("Error de conexión", "error");
+            }
         }
 
         function switchTab(tab) {
@@ -342,14 +359,7 @@
         }
 
         async function loadAll() {
-            const success = await Promise.all([loadDesigns(), loadPortfolio(), loadReviews()]);
-            if (success.every(s => s)) {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('dashboardSection').style.display = 'block';
-                document.getElementById('logoutBtn').style.display = 'block';
-            } else {
-                showToast("Contraseña incorrecta o error de conexión", "error");
-            }
+            return Promise.all([loadDesigns(), loadPortfolio(), loadReviews()]);
         }
 
         async function loadDesigns() {
@@ -379,7 +389,7 @@
                 const list = document.getElementById('portfolioList');
                 list.innerHTML = data.map(p => `
                     <div class="item-card">
-                        <img src="${p.imageUrl}">
+                        <img src="${encodeURI(p.imageUrl)}">
                         <div class="item-info">
                             <span style="font-size:12px; color:#555;">Tatuaje Realizado</span>
                             <button class="btn btn-danger btn-sm" onclick="deleteItem('portfolio', '${p._id}')">
@@ -424,9 +434,12 @@
             const formData = new FormData();
             formData.append('image', document.getElementById('designImage').files[0]);
             formData.append('price', document.getElementById('designPrice').value);
-            formData.append('password', password);
 
-            const res = await fetch('/api/admin/designs', { method: 'POST', body: formData });
+            const res = await fetch('/api/admin/designs', { 
+                method: 'POST', 
+                headers: { 'x-admin-password': password },
+                body: formData 
+            });
             if (res.ok) {
                 showToast("Diseño guardado");
                 document.getElementById('designForm').reset();
@@ -441,9 +454,12 @@
             e.preventDefault();
             const formData = new FormData();
             formData.append('image', document.getElementById('portfolioImage').files[0]);
-            formData.append('password', password);
 
-            const res = await fetch('/api/admin/portfolio', { method: 'POST', body: formData });
+            const res = await fetch('/api/admin/portfolio', { 
+                method: 'POST', 
+                headers: { 'x-admin-password': password },
+                body: formData 
+            });
             if (res.ok) {
                 showToast("Añadido al portafolio");
                 document.getElementById('portfolioForm').reset();
@@ -457,8 +473,10 @@
             if (!confirm("¿Eliminar este elemento permanentemente?")) return;
             const res = await fetch(`/api/admin/${type}/${id}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password })
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-admin-password': password 
+                }
             });
             if (res.ok) {
                 showToast("Eliminado correctamente");

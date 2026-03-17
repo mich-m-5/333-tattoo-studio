@@ -430,19 +430,15 @@ async function fetchDesigns() {
       return;
     }
 
-    gallery.innerHTML = designs.map(design => {
-      const priceValue = (design.price || '').trim();
-      const badgeText = priceValue && !/consult/i.test(priceValue) ? priceValue : 'Precio no definido';
-      return `
+    gallery.innerHTML = designs.map(design => `
       <div class="design-item">
-        <div class="price-badge">${badgeText}</div>
+        ${design.price && design.price !== 'Consultar' ? `<div class="price-badge">${design.price}</div>` : ''}
         <img src="${encodeURI(design.imageUrl)}" alt="Diseño Disponible">
         <div class="design-info">
           <button type="button" class="choose-design-btn">Escoger</button>
         </div>
       </div>
-    `
-    }).join('');
+    `).join('');
 
     // Re-inicializar scroll reveal para los nuevos elementos
     initScrollReveal();

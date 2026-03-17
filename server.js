@@ -6,12 +6,15 @@ const fs = require("fs")
 
 const app = express()
 
-// Asegurar que la carpeta 'uploads' exista en Render
-const uploadsDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-  console.log("Carpeta 'uploads' creada");
-}
+// Asegurar que las carpetas necesarias existan
+const folders = ["uploads", "public/tattoo"];
+folders.forEach(folder => {
+  const dir = path.join(__dirname, folder);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+    console.log(`Carpeta '${folder}' creada`);
+  }
+});
 
 // --- FUNCIÓN DE NOTIFICACIÓN POR DISCORD (CON IMAGEN) ---
 async function enviarNotificacionDiscord(data, filename) {
@@ -73,8 +76,8 @@ async function enviarNotificacionDiscord(data, filename) {
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(express.static("public"))
-app.use("/uploads", express.static("uploads")) // Permitir ver las imágenes subidas
+app.use(express.static(path.join(__dirname, "public")))
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))) // Permitir ver las imágenes subidas
 
 const mongoURI = "mongodb+srv://michmuzo55_db_user:basquetian2021m@cluster0.6qdrrgb.mongodb.net/tattooStudio?retryWrites=true&w=majority";
 
@@ -141,10 +144,10 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Si es un diseño de admin va a 'public/tattoo', si es referencia de cliente a 'uploads'
     const folder = req.path.includes("admin") ? "public/tattoo" : "uploads";
-    cb(null, folder)
+    cb(null, path.join(__dirname, folder))
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname)
+    cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, '_'))
   }
 })
 
@@ -161,6 +164,26 @@ const upload = multer({
 
 // --- RUTAS DE ADMINISTRACIÓN (DISEÑOS) ---
 const ADMIN_PASSWORD = "333adminpassword"; // Cambia esto por la contraseña que quieras
+
+// Ruta para verificar la contraseña
+app.post("/api/admin/verify", (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ error: "Contraseña incorrecta" });
+  }
+});
+
+// Middleware de verificación de contraseña
+const verifyAdmin = (req, res, next) => {
+  const password = req.headers["x-admin-password"] || req.body.password;
+  if (password === ADMIN_PASSWORD) {
+    next();
+  } else {
+    res.status(401).json({ error: "No autorizado" });
+  }
+};
 
 // Obtener todos los diseños (Público)
 app.get("/api/designs", async (req, res) => {
@@ -185,14 +208,12 @@ app.get("/api/designs", async (req, res) => {
 });
 
 // Agregar un diseño (Admin)
-app.post("/api/admin/designs", upload.single("image"), async (req, res) => {
-  const { password, price } = req.body;
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Contraseña incorrecta" });
-  }
+app.post("/api/admin/designs", verifyAdmin, upload.single("image"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Debes subir una imagen" });
   }
+
+  const { price } = req.body;
 
   try {
     const newDesign = new Design({
@@ -207,12 +228,7 @@ app.post("/api/admin/designs", upload.single("image"), async (req, res) => {
 });
 
 // Eliminar un diseño (Admin)
-app.delete("/api/admin/designs/:id", async (req, res) => {
-  const { password } = req.body;
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Contraseña incorrecta" });
-  }
-
+app.delete("/api/admin/designs/:id", verifyAdmin, async (req, res) => {
   try {
     const design = await Design.findById(req.params.id);
     if (design) {
@@ -251,11 +267,7 @@ app.get("/api/portfolio", async (req, res) => {
 });
 
 // Agregar al portafolio (Admin)
-app.post("/api/admin/portfolio", upload.single("image"), async (req, res) => {
-  const { password } = req.body;
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Contraseña incorrecta" });
-  }
+app.post("/api/admin/portfolio", verifyAdmin, upload.single("image"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Debes subir una imagen" });
   }
@@ -272,12 +284,7 @@ app.post("/api/admin/portfolio", upload.single("image"), async (req, res) => {
 });
 
 // Eliminar del portafolio (Admin)
-app.delete("/api/admin/portfolio/:id", async (req, res) => {
-  const { password } = req.body;
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Contraseña incorrecta" });
-  }
-
+app.delete("/api/admin/portfolio/:id", verifyAdmin, async (req, res) => {
   try {
     const item = await Portfolio.findById(req.params.id);
     if (item) {
@@ -324,12 +331,7 @@ app.post("/api/reviews", async (req, res) => {
 });
 
 // Eliminar reseña (Admin)
-app.delete("/api/admin/reviews/:id", async (req, res) => {
-  const { password } = req.body;
-  if (password !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Contraseña incorrecta" });
-  }
-
+app.delete("/api/admin/reviews/:id", verifyAdmin, async (req, res) => {
   try {
     await Review.findByIdAndDelete(req.params.id);
     res.json({ message: "Reseña eliminada" });
