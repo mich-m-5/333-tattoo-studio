@@ -400,16 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Mensaje de bienvenida/versión para confirmar que el código es el nuevo
   showToast("333 Tattoo", "Sistema actualizado y listo", "success", 2000);
 
-  // Seleccionar el botón de enviar y añadirle el evento click directamente
-  const submitBtn = document.querySelector(".submit-btn");
-  if (submitBtn) {
-    submitBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      handleFormSubmission();
-    });
-  }
-
-  // También escuchar el evento submit del formulario por si acaso
+  // Solo escuchar el evento submit del formulario
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
