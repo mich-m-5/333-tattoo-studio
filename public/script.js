@@ -467,28 +467,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (reviewForm) {
     reviewForm.addEventListener("submit", handleReviewSubmission);
   }
-
-  // --- LÓGICA DE MOSTRAR/OCULTAR FORMULARIO DE RESEÑA ---
-  const showReviewBtn = document.getElementById("showReviewBtn");
-  const closeReviewBtn = document.getElementById("closeReviewBtn");
-  const reviewFormContainer = document.getElementById("reviewFormContainer");
-  const showReviewBtnContainer = document.getElementById("showReviewBtnContainer");
-
-  if (showReviewBtn && reviewFormContainer) {
-    showReviewBtn.addEventListener("click", () => {
-      reviewFormContainer.style.display = "block";
-      showReviewBtnContainer.style.display = "none";
-      reviewFormContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  }
-
-  if (closeReviewBtn && reviewFormContainer) {
-    closeReviewBtn.addEventListener("click", () => {
-      reviewFormContainer.style.display = "none";
-      showReviewBtnContainer.style.display = "block";
-    });
-  }
-
   initScrollReveal();
   
   // Mensaje de bienvenida/versión para confirmar que el código es el nuevo

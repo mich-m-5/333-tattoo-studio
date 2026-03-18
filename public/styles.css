@@ -55,21 +55,6 @@ nav a:hover {
   position: relative;
   overflow: hidden;
   padding: 0 20px;
-  background-image: url('tattoo/WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg'); /* Fondo igual al de reseñas */
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.75); /* Oscurecer fondo igual que en reseñas */
-  z-index: 1;
 }
 
 .hero-content {
@@ -79,9 +64,27 @@ nav a:hover {
   text-align: center;
   margin-top: 10px;
 }
+.hero h2 {
+  font-size: 32px;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+  text-align: center;
+}
+.titulo {
+  text-align: center;
+}
+
+.hero-location {
+  font-size: 20px;
+  color: #888;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+}
 
 .hero-seo-box {
-  background: rgba(255, 255, 255, 0.05); /* Glassmorphism */
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(10px);
   padding: 40px;
   border-radius: 20px;
@@ -89,43 +92,167 @@ nav a:hover {
   box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
-#about {
-  padding: 80px 5%;
-  text-align: center;
-  position: relative;
-  background-image: url('tattoo/WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  overflow: hidden;
+.hero-seo-box h1 {
+  font-size: 24px;
+  color: #0070c9;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-.about-overlay {
+.hero-seo-box p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+.hero-seo-box p:last-child {
+  margin-bottom: 0;
+}
+
+.hero-seo-box strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.hero::before {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85); /* Oscurecer igual que reseñas */
-  z-index: 1;
+  background-image: url('tattoo/WhatsApp\ Image\ 2026-03-10\ at\ 10.06.21\ PM.jpeg'); /* Usamos una de tus fotos */
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px) brightness(0.4); /* Efecto borroso y oscuro para que resalte el texto */
+  z-index: -1;
+  transform: scale(1.1); /* Para evitar bordes blancos por el blur */
 }
 
-.about-content-wrapper {
+.hero h2 {
+  font-size: 48px;
+  text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+  max-width: 800px;
+}
+
+.hero p {
+  font-size: 24px;
+  margin-top: 10px;
+  text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+}
+
+#portfolio, #designs, #about {
+  padding: 80px 5%;
+  text-align: center;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Tres columnas */
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto; /* Centrado */
+}
+
+/* Animación de entrada para imágenes */
+.gallery img, .design-item {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 12px;
+  cursor: pointer;
+  
+  /* Estado inicial: invisible y un poco abajo */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.gallery img.reveal, .design-item.reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gallery img:hover, .design-item:hover img {
+  transform: scale(1.03) translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+}
+
+/* Estilos para Diseños Disponibles con Precio */
+.design-item {
   position: relative;
-  z-index: 2;
+  overflow: hidden;
+  border-radius: 12px;
+  display: block;
+  background: #111;
+}
+
+.design-item .price-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.design-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.3s ease;
+}
+
+.design-item .price {
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.design-item img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.4s ease;
+}
+
+/* Sección de Tatuadores */
+.artists {
+  display: flex;
+  justify-content: center;
+  gap: 50px;
+  flex-wrap: wrap;
+  margin-top: 40px;
 }
 
 .artist-card {
-  background: rgba(255, 255, 255, 0.05); /* Glassmorphism */
-  backdrop-filter: blur(10px);
+  background: #1a1a1a;
   padding: 20px;
   border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   width: 300px;
   transition: 0.3s;
-  text-decoration: none;
-  color: white;
-  display: block;
+  text-decoration: none; /* Quitar subrayado del link */
+  color: white; /* Mantener color de texto blanco */
+  display: block; /* Asegurar que todo el bloque sea clickeable */
 }
 
 .artist-card:hover {
