@@ -70,6 +70,7 @@ async function handleFormSubmission() {
     clearTimeout(timeoutId);
 
     if (response.ok) {
+      const serverData = await response.json();
       showToast("¡HECHO!", "Redirigiendo a WhatsApp...", "success");
       
       // --- REDIRECCIÓN A WHATSAPP PROFESIONAL ---
@@ -80,10 +81,14 @@ async function handleFormSubmission() {
       const style = formData.get("style");
       const idea = formData.get("idea");
       let chosenDesign = formData.get("chosenDesignUrl");
+      let uploadedFileUrl = serverData.referenceUrl;
 
-      // Si la URL del diseño es relativa, convertirla en absoluta para WhatsApp
+      // Convertir URLs relativas en absolutas para que WhatsApp las reconozca y genere previsualización
       if (chosenDesign && !chosenDesign.startsWith("http")) {
         chosenDesign = window.location.origin + (chosenDesign.startsWith("/") ? "" : "/") + chosenDesign;
+      }
+      if (uploadedFileUrl && !uploadedFileUrl.startsWith("http")) {
+        uploadedFileUrl = window.location.origin + (uploadedFileUrl.startsWith("/") ? "" : "/") + uploadedFileUrl;
       }
 
       let message = `*𝟛𝟛𝟛 𝕋𝕒𝕥𝕥𝕠𝕠 𝕊𝕥𝕦𝕕𝕚𝕠*\n`;
@@ -98,9 +103,10 @@ async function handleFormSubmission() {
       
       if (chosenDesign) {
         message += `🖼️ *Diseño seleccionado:*\n${chosenDesign}\n\n`;
-      } else {
-        message += `📎 *Nota:* He adjuntado una imagen de referencia en el formulario web.\n\n`;
+      } else if (uploadedFileUrl) {
+        message += `📎 *Imagen de referencia:*\n${uploadedFileUrl}\n\n`;
       }
+      
       message += `━━━━━━━━━━━━━━━━━━━━\n`;
       message += `_Enviado desde el sitio web oficial_`;
 

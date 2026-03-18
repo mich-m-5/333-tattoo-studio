@@ -476,8 +476,11 @@ app.post("/booking", upload.single("reference"), async (req, res) => {
     console.log("➡️ [4] Iniciando envío de notificación a Discord...");
     await enviarNotificacionDiscord(req.body, req.file?.filename);
 
-    console.log("➡️ [5] Enviando respuesta 'ok' al cliente");
-    res.status(200).send("ok");
+    console.log("➡️ [5] Enviando respuesta al cliente");
+    res.status(200).json({ 
+      status: "ok", 
+      referenceUrl: req.file ? `/uploads/${req.file.filename}` : null 
+    });
 
   } catch (error) {
     console.error("❌ ERROR CRÍTICO EN /BOOKING:", error);
