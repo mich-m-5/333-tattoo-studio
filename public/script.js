@@ -329,8 +329,8 @@ function initStarRating() {
   const ratingInput = document.getElementById("ratingValue");
 
   // Valor por defecto (5 estrellas)
-  updateStars(5);
-  ratingInput.value = 5;
+  updateStars(0);
+  ratingInput.value =  5;
 
   stars.forEach(star => {
     star.addEventListener("click", () => {
@@ -364,8 +364,8 @@ async function handleReviewSubmission(e) {
     if (response.ok) {
       showToast("¡GRACIAS!", "Tu reseña ha sido publicada.", "success");
       document.getElementById("reviewForm").reset();
-      updateStars(5);
-      document.getElementById("ratingValue").value = 5;
+      updateStars(0);
+      document.getElementById("ratingValue").value = 0; 
       document.querySelectorAll(".portfolio-item-select").forEach(el => el.classList.remove("selected"));
       document.getElementById("selectedTattooUrl").value = "";
       fetchReviews();
