@@ -174,6 +174,7 @@ const reviewSchema = new mongoose.Schema({
   name: String,
   rating: Number,
   comment: String,
+  tattooImageUrl: String, // Nueva campo para la foto del tatuaje
   createdAt: { type: Date, default: Date.now }
 })
 const Review = mongoose.model("Review", reviewSchema)
@@ -201,10 +202,11 @@ const upload = multer({
   }
 })
 
-// --- RUTAS DE ADMINISTRACIÓN (DISEÑOS) ---
-const ADMIN_PASSWORD = "333adminpassword"; // Cambia esto por la contraseña que quieras
+// --- CONFIGURACIÓN DE CONTRASEÑAS ---
+const ADMIN_PASSWORD = "333tattoo333"; 
+const REVIEW_PASSWORD = "333"; // Contraseña para dejar reseñas
 
-// Ruta para verificar la contraseña
+// Ruta para verificar la contraseña admin
 app.post("/api/admin/verify", (req, res) => {
   const { password } = req.body;
   if (password === ADMIN_PASSWORD) {
@@ -417,15 +419,19 @@ app.get("/api/reviews", async (req, res) => {
   }
 });
 
-// Agregar una reseña (Público)
+// Agregar una reseña (Público con contraseña)
 app.post("/api/reviews", async (req, res) => {
-  const { name, rating, comment } = req.body;
-  if (!name || !rating || !comment) {
+  const { name, rating, comment, password, tattooImageUrl } = req.body;
+  if (!name || !rating || !comment || !password) {
     return res.status(400).json({ error: "Todos los campos son obligatorios" });
   }
 
+  if (password !== REVIEW_PASSWORD) {
+    return res.status(401).json({ error: "Contraseña de reseña incorrecta" });
+  }
+
   try {
-    const newReview = new Review({ name, rating, comment });
+    const newReview = new Review({ name, rating, comment, tattooImageUrl });
     await newReview.save();
     res.status(201).json(newReview);
   } catch (error) {

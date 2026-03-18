@@ -105,7 +105,7 @@ async function handleFormSubmission() {
       message += `_Enviado desde el sitio web oficial_`;
 
       const encodedMessage = encodeURIComponent(message);
-      const whatsappUrl = `https://wa.me/593984185834?text=${encodedMessage}`;
+      const whatsappUrl = `https://wa.me/593959584119?text=${encodedMessage}`;
       
       setTimeout(() => {
         window.open(whatsappUrl, '_blank');
@@ -194,8 +194,8 @@ document.querySelectorAll(".next-step").forEach(button => {
     if (allValid) {
       currentStep++;
       updateFormSteps();
-      // Scroll suave hacia el inicio del formulario
-      document.getElementById("booking").scrollIntoView({ behavior: 'smooth' });
+      // Scroll suave hacia el centro del formulario para que sea vea todo
+      document.getElementById("booking").scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
       showToast("¡Hey!", "Falta tinta por rellenar. Completa los campos obligatorios.", "error");
     }
@@ -245,6 +245,9 @@ function initScrollReveal() {
 }
 
 // --- LÓGICA DE RESEÑAS ---
+let reviewInterval;
+let currentReviewIndex = 0;
+
 async function fetchReviews() {
   const reviewsList = document.getElementById("reviewsList");
   if (!reviewsList) return;
@@ -258,21 +261,66 @@ async function fetchReviews() {
       return;
     }
 
+    // Limpiar intervalo anterior si existe
+    if (reviewInterval) clearInterval(reviewInterval);
+
     reviewsList.innerHTML = reviews.map(r => `
       <div class="review-card">
-        <div class="review-header">
-          <span class="review-name">${r.name}</span>
-          <div class="review-stars">
-            ${'<i class="fas fa-star"></i>'.repeat(r.rating)}
-            ${'<i class="far fa-star"></i>'.repeat(5 - r.rating)}
+        ${r.tattooImageUrl ? `<img src="${encodeURI(r.tattooImageUrl)}" class="review-tattoo-thumb" alt="Tatuaje">` : ''}
+        <div class="review-body">
+          <div class="review-header">
+            <span class="review-name">${r.name}</span>
+            <div class="review-stars">
+              ${'<i class="fas fa-star"></i>'.repeat(r.rating)}
+              ${'<i class="far fa-star"></i>'.repeat(5 - r.rating)}
+            </div>
           </div>
+          <p class="review-comment">"${r.comment}"</p>
         </div>
-        <p class="review-comment">"${r.comment}"</p>
       </div>
     `).join('');
+
+    // Iniciar auto-scroll si hay más de una reseña
+    if (reviews.length > 1) {
+      startReviewCarousel(reviews.length);
+    }
   } catch (error) {
     console.error("Error cargando reseñas:", error);
   }
+}
+
+function startReviewCarousel(count) {
+  const list = document.getElementById("reviewsList");
+  currentReviewIndex = 0;
+  
+  reviewInterval = setInterval(() => {
+    currentReviewIndex = (currentReviewIndex + 1) % count;
+    const cardHeight = list.children[0].offsetHeight + 30; // Altura + gap
+    list.style.transform = `translateY(-${currentReviewIndex * cardHeight}px)`;
+  }, 4000); // 4 segundos por reseña (3s quieta + 1s transición aprox)
+}
+
+// Cargar portafolio para el selector de reseñas
+async function fetchPortfolioForReviews() {
+  const selector = document.getElementById("portfolioSelector");
+  if (!selector) return;
+
+  try {
+    const response = await fetch("/api/portfolio");
+    const portfolio = await response.json();
+
+    selector.innerHTML = portfolio.map(item => `
+      <img src="${encodeURI(item.imageUrl)}" class="portfolio-item-select" onclick="selectTattooForReview(this, '${item.imageUrl}')" alt="Tatuaje">
+    `).join('');
+  } catch (e) {
+    selector.innerHTML = '<p style="color:red;">Error al cargar portafolio</p>';
+  }
+}
+
+function selectTattooForReview(img, url) {
+  document.querySelectorAll(".portfolio-item-select").forEach(el => el.classList.remove("selected"));
+  img.classList.add("selected");
+  document.getElementById("selectedTattooUrl").value = url;
 }
 
 // Inicializar selección de estrellas
@@ -282,6 +330,7 @@ function initStarRating() {
 
   // Valor por defecto (5 estrellas)
   updateStars(5);
+  ratingInput.value = 5;
 
   stars.forEach(star => {
     star.addEventListener("click", () => {
@@ -289,29 +338,7 @@ function initStarRating() {
       ratingInput.value = val;
       updateStars(val);
     });
-
-    star.addEventListener("mouseover", () => {
-      const val = parseInt(star.getAttribute("data-value"));
-      updateStars(val);
-    });
-
-    star.addEventListener("mouseout", () => {
-      updateStars(parseInt(ratingInput.value));
-    });
   });
-
-  function updateStars(val) {
-    stars.forEach(s => {
-      const sVal = parseInt(s.getAttribute("data-value"));
-      if (sVal <= val) {
-        s.classList.add("active", "fas");
-        s.classList.remove("far");
-      } else {
-        s.classList.remove("active", "fas");
-        s.classList.add("far");
-      }
-    });
-  }
 }
 
 async function handleReviewSubmission(e) {
@@ -319,8 +346,11 @@ async function handleReviewSubmission(e) {
   const name = document.getElementById("reviewName").value;
   const rating = document.getElementById("ratingValue").value;
   const comment = document.getElementById("reviewComment").value;
+  const password = document.getElementById("reviewPassword").value;
+  const tattooImageUrl = document.getElementById("selectedTattooUrl").value;
 
   const btn = e.target.querySelector("button");
+  const originalText = btn.textContent;
   btn.disabled = true;
   btn.textContent = "PUBLICANDO...";
 
@@ -328,23 +358,26 @@ async function handleReviewSubmission(e) {
     const response = await fetch("/api/reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, rating, comment })
+      body: JSON.stringify({ name, rating, comment, password, tattooImageUrl })
     });
 
     if (response.ok) {
       showToast("¡GRACIAS!", "Tu reseña ha sido publicada.", "success");
       document.getElementById("reviewForm").reset();
-      updateStars(5); // Reset estrellas
+      updateStars(5);
       document.getElementById("ratingValue").value = 5;
+      document.querySelectorAll(".portfolio-item-select").forEach(el => el.classList.remove("selected"));
+      document.getElementById("selectedTattooUrl").value = "";
       fetchReviews();
     } else {
-      showToast("ERROR", "No se pudo publicar la reseña.", "error");
+      const data = await response.json();
+      showToast("ERROR", data.error || "No se pudo publicar la reseña.", "error");
     }
   } catch (error) {
     showToast("ERROR", "Error de conexión.", "error");
   } finally {
     btn.disabled = false;
-    btn.textContent = "PUBLICAR RESEÑA";
+    btn.textContent = originalText;
   }
 }
 
@@ -427,6 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchPortfolio();
   fetchDesigns();
   fetchReviews();
+  fetchPortfolioForReviews();
   initStarRating();
 
   const reviewForm = document.getElementById("reviewForm");
@@ -436,7 +470,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initScrollReveal();
   
   // Mensaje de bienvenida/versión para confirmar que el código es el nuevo
-  showToast("333 Tattoo", "Sistema actualizado y listo", "success", 2000);
+  showToast("333 Tattoo Studio", "success", 2000);
 
   // Solo escuchar el evento submit del formulario
   if (form) {

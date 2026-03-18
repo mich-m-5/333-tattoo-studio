@@ -90,39 +90,59 @@
 </section>
 
 <section id="reviews">
-  <h2>Reseñas de Clientes</h2>
-  <p>Lo que dicen los que ya pasaron por 333 Tattoo Studio</p>
-  
-  <div class="reviews-container">
-    <div id="reviewsList" class="reviews-grid">
-      <!-- Reseñas cargadas dinámicamente -->
-      <p style="text-align: center; color: #888;">Cargando reseñas...</p>
-    </div>
+  <div class="reviews-overlay"></div>
+  <div class="reviews-content-wrapper">
+    <h2>Reseñas de Clientes</h2>
+    <p>Lo que dicen los que ya pasaron por 333 Tattoo Studio</p>
+    
+    <div class="reviews-container">
+      <div class="reviews-viewport">
+        <div id="reviewsList" class="reviews-column">
+          <!-- Reseñas cargadas dinámicamente -->
+          <p style="text-align: center; color: #888;">Cargando reseñas...</p>
+        </div>
+      </div>
 
-    <div class="add-review">
-      <h3>DÉJANOS TU RESEÑA</h3>
-      <form id="reviewForm">
-        <div class="input-field">
-          <label>TU NOMBRE</label>
-          <input type="text" id="reviewName" required placeholder="¿Cómo te llamas?">
-        </div>
-        <div class="rating-input">
-          <label>PUNTUACIÓN</label>
-          <div class="stars" id="starInput">
-            <i class="fas fa-star" data-value="1"></i>
-            <i class="fas fa-star" data-value="2"></i>
-            <i class="fas fa-star" data-value="3"></i>
-            <i class="fas fa-star" data-value="4"></i>
-            <i class="fas fa-star" data-value="5"></i>
+      <div class="add-review">
+        <h3>DÉJANOS TU RESEÑA</h3>
+        <form id="reviewForm">
+          <div class="input-field">
+            <label>TU NOMBRE</label>
+            <input type="text" id="reviewName" required placeholder="¿Cómo te llamas?">
           </div>
-          <input type="hidden" id="ratingValue" value="5">
-        </div>
-        <div class="input-field">
-          <label>TU COMENTARIO</label>
-          <textarea id="reviewComment" required placeholder="Cuéntanos tu experiencia..."></textarea>
-        </div>
-        <button type="submit" class="btn-review">PUBLICAR RESEÑA</button>
-      </form>
+          <div class="rating-input">
+            <label>PUNTUACIÓN</label>
+            <div class="stars" id="starInput">
+              <i class="fas fa-star" data-value="1"></i>
+              <i class="fas fa-star" data-value="2"></i>
+              <i class="fas fa-star" data-value="3"></i>
+              <i class="fas fa-star" data-value="4"></i>
+              <i class="fas fa-star" data-value="5"></i>
+            </div>
+            <input type="hidden" id="ratingValue" value="5">
+          </div>
+          <div class="input-field">
+            <label>TU COMENTARIO</label>
+            <textarea id="reviewComment" required placeholder="Cuéntanos tu experiencia..."></textarea>
+          </div>
+          
+          <div class="input-field">
+            <label>¿QUÉ TATUAJE TE HICISTE?</label>
+            <div id="portfolioSelector" class="portfolio-selector-grid">
+              <!-- Cargado dinámicamente -->
+              <p style="font-size: 12px; color: #666;">Cargando portafolio...</p>
+            </div>
+            <input type="hidden" id="selectedTattooUrl">
+          </div>
+
+          <div class="input-field">
+            <label>CONTRASEÑA (Solicítala en el estudio)</label>
+            <input type="password" id="reviewPassword" required placeholder="Ingresa la contraseña">
+          </div>
+          
+          <button type="submit" class="btn-review">PUBLICAR RESEÑA</button>
+        </form>
+      </div>
     </div>
   </div>
 </section>
@@ -307,7 +327,7 @@
 
 </section>
 
-<a class="whatsapp-btn" href="https://wa.me/959584119?text=Hola+quería+cotizar+un+tatuaje+en+333+Tattoo+Studio" target="_blank">
+<a class="whatsapp-btn" href="https://wa.me/593959584119?text=Hola+quería+cotizar+un+tatuaje+en+333+Tattoo+Studio" target="_blank">
   <i class="fab fa-whatsapp"></i>
   <span>Contacto</span>
 </a>
