@@ -233,9 +233,14 @@ app.get("/api/designs", async (req, res) => {
 
     const designs = await Design.find().sort({ createdAt: -1 });
     const normalized = designs.map(d => {
+      let imageUrl = d.imageUrl;
+      // Si la URL no es de Cloudinary y no empieza con /, añadirle /
+      if (!imageUrl?.startsWith("http") && !imageUrl?.startsWith("/")) {
+        imageUrl = `/${imageUrl}`;
+      }
       return {
         ...d.toObject(),
-        imageUrl: d.imageUrl?.startsWith("/") ? d.imageUrl : `/${d.imageUrl}`,
+        imageUrl: imageUrl,
         price: d.price || ""
       };
     });
@@ -321,10 +326,16 @@ app.get("/api/portfolio", async (req, res) => {
       return res.status(503).json([]);
     }
     const portfolio = await Portfolio.find().sort({ createdAt: -1 });
-    const normalized = portfolio.map(p => ({
-      ...p.toObject(),
-      imageUrl: p.imageUrl?.startsWith("/") ? p.imageUrl : `/${p.imageUrl}`
-    }));
+    const normalized = portfolio.map(p => {
+      let imageUrl = p.imageUrl;
+      if (!imageUrl?.startsWith("http") && !imageUrl?.startsWith("/")) {
+        imageUrl = `/${imageUrl}`;
+      }
+      return {
+        ...p.toObject(),
+        imageUrl: imageUrl
+      };
+    });
     res.json(normalized);
   } catch (error) {
     console.error("Error /api/portfolio:", error);

@@ -70,35 +70,43 @@ async function handleFormSubmission() {
     clearTimeout(timeoutId);
 
     if (response.ok) {
-      showToast("¡HECHO!", "Tu idea está en camino. Redirigiendo a WhatsApp...", "success");
+      showToast("¡HECHO!", "Redirigiendo a WhatsApp...", "success");
       
-      // --- REDIRECCIÓN A WHATSAPP ---
+      // --- REDIRECCIÓN A WHATSAPP PROFESIONAL ---
       const name = formData.get("name");
       const whatsapp = formData.get("whatsapp");
       const age = formData.get("age");
       const size = formData.get("tattoo-size");
       const style = formData.get("style");
       const idea = formData.get("idea");
-      const chosenDesign = formData.get("chosenDesignUrl");
+      let chosenDesign = formData.get("chosenDesignUrl");
 
-      let message = `🔥 *NUEVA COTIZACIÓN RECIBIDA*\n\n`;
-      message += `👤 *Nombre:* ${name}\n`;
+      // Si la URL del diseño es relativa, convertirla en absoluta para WhatsApp
+      if (chosenDesign && !chosenDesign.startsWith("http")) {
+        chosenDesign = window.location.origin + (chosenDesign.startsWith("/") ? "" : "/") + chosenDesign;
+      }
+
+      let message = `*𝟛𝟛𝟛 𝕋𝕒𝕥𝕥𝕠𝕠 𝕊𝕥𝕦𝕕𝕚𝕠*\n`;
+      message += `━━━━━━━━━━━━━━━━━━━━\n`;
+      message += `🔥 *NUEVA SOLICITUD DE TATUAJE*\n\n`;
+      message += `👤 *Cliente:* ${name}\n`;
       message += `📱 *WhatsApp:* ${whatsapp}\n`;
-      message += `🎂 *Edad:* ${age}\n`;
-      message += `📏 *Tamaño:* ${size}\n`;
+      message += `🎂 *Edad:* ${age} años\n`;
+      message += `📏 *Tamaño aprox:* ${size}\n`;
       message += `🎨 *Estilo:* ${style}\n`;
-      message += `💡 *Idea:* ${idea}\n`;
+      message += `💡 *Idea:* ${idea}\n\n`;
       
       if (chosenDesign) {
-        message += `\n🖼️ *Diseño escogido:* ${chosenDesign}`;
+        message += `🖼️ *Diseño seleccionado:*\n${chosenDesign}\n\n`;
       } else {
-        message += `\n📎 *Adjunté una imagen de referencia en el formulario.*`;
+        message += `📎 *Nota:* He adjuntado una imagen de referencia en el formulario web.\n\n`;
       }
+      message += `━━━━━━━━━━━━━━━━━━━━\n`;
+      message += `_Enviado desde el sitio web oficial_`;
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/593984185834?text=${encodedMessage}`;
       
-      // Pequeña pausa para que el usuario vea el toast
       setTimeout(() => {
         window.open(whatsappUrl, '_blank');
         form.reset();
@@ -106,7 +114,6 @@ async function handleFormSubmission() {
         updateFormSteps();
         document.getElementById("fileNameDisplay").textContent = "Sin archivos seleccionados";
         
-        // Limpiar selección de diseño si existe
         const selectedDesignContainer = document.getElementById("selectedDesignContainer");
         const chosenDesignInput = document.getElementById("chosenDesignInput");
         const fileUploadSection = document.getElementById("fileUploadSection");
@@ -120,7 +127,7 @@ async function handleFormSubmission() {
         if (designChosenMessage) designChosenMessage.style.display = "none";
         const subtitle = document.getElementById("step3Subtitle");
         if (subtitle) subtitle.textContent = "Cuéntanos más detalles";
-      }, 1500);
+      }, 1200);
     } else {
       try {
         const errorData = await response.json();
