@@ -3,8 +3,17 @@ const mongoose = require("mongoose")
 const multer = require("multer")
 const path = require("path")
 const fs = require("fs")
+const cloudinary = require("cloudinary").v2;
 
 const app = express()
+
+// Configuración de Cloudinary (Opcional pero RECOMENDADA para Render)
+// Para que las imágenes no se borren, el usuario debe configurar estas variables en Render
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Asegurar que las carpetas necesarias existan
 const folders = ["uploads", "public/tattoo"];
@@ -18,7 +27,6 @@ folders.forEach(folder => {
 
 // --- FUNCIÓN DE NOTIFICACIÓN POR DISCORD (CON IMAGEN) ---
 async function enviarNotificacionDiscord(data, filename) {
-  // Webhook del usuario
   const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1482146605791711296/gvrOnZDJmtXLncsBJqpm6uYRxCS79h1AWDw8LTsASYLlbKLytr8xGShwJsFzT0KvM8wj";
 
   let imagePath = null;
@@ -28,26 +36,27 @@ async function enviarNotificacionDiscord(data, filename) {
     imagePath = path.join(__dirname, "uploads", filename);
     finalFilename = filename;
   } else if (data.chosenDesignUrl) {
-    // Limpiar la URL para obtener la ruta relativa correcta
-    let relativePath = decodeURIComponent(data.chosenDesignUrl).replace(/\\/g, "/");
-    // Si la URL es absoluta (empieza con http), intentar extraer la ruta relativa
-    if (relativePath.startsWith("http")) {
-      try {
-        const url = new URL(relativePath);
-        relativePath = url.pathname;
-      } catch (e) {
-        console.error("Error al parsear URL absoluta:", relativePath);
+    // Si la URL es de Cloudinary, no buscamos en el disco local
+    if (data.chosenDesignUrl.includes("cloudinary.com")) {
+      embed.image = { url: data.chosenDesignUrl };
+      imagePath = null; // No enviar como adjunto si ya es una URL pública
+    } else {
+      let relativePath = decodeURIComponent(data.chosenDesignUrl).replace(/\\/g, "/");
+      if (relativePath.startsWith("http")) {
+        try {
+          const url = new URL(relativePath);
+          relativePath = url.pathname;
+        } catch (e) {}
       }
+      const cleanRelativePath = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+      imagePath = path.join(__dirname, "public", cleanRelativePath);
+      finalFilename = path.basename(cleanRelativePath);
     }
-    // Asegurar que no empiece con / para path.join
-    const cleanRelativePath = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
-    imagePath = path.join(__dirname, "public", cleanRelativePath);
-    finalFilename = path.basename(cleanRelativePath);
   }
 
   const embed = {
     title: "🔥 NUEVA COTIZACIÓN RECIBIDA",
-    color: 3447003, // Color azul
+    color: 3447003,
     fields: [
       { name: "👤 Nombre", value: data.name || "No indicado", inline: true },
       { name: "📱 WhatsApp", value: data.whatsapp || "No indicado", inline: true },
@@ -61,39 +70,45 @@ async function enviarNotificacionDiscord(data, filename) {
   };
 
   try {
-    const formData = new FormData();
-    
-    if (imagePath && fs.existsSync(imagePath)) {
-      console.log("📎 Adjuntando imagen a Discord:", imagePath);
-      embed.image = { url: `attachment://${finalFilename}` };
-      const fileBuffer = fs.readFileSync(imagePath);
-      const blob = new Blob([fileBuffer]);
-      formData.append("file", blob, finalFilename);
-    } else {
-      console.log("ℹ️ No se pudo adjuntar imagen. Ruta:", imagePath);
-      // Si no existe el archivo pero hay una URL de diseño escogido, enviarla en el texto
-      if (data.chosenDesignUrl) {
-        embed.description = `**Diseño escogido:** ${data.chosenDesignUrl}`;
-      }
-    }
-
-    formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
-
-    console.log("🚀 Enviando petición a Discord...");
-    const response = await fetch(DISCORD_WEBHOOK_URL, {
+    // 1. Intentar enviar primero solo el JSON (es lo que menos bloquea Cloudflare)
+    console.log("🚀 Enviando datos a Discord...");
+    const jsonResponse = await fetch(DISCORD_WEBHOOK_URL, {
       method: "POST",
-      body: formData
+      headers: { 
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+      },
+      body: JSON.stringify({ embeds: [embed] })
     });
 
-    if (response.ok) {
-      console.log("✅ Notificación enviada a Discord con éxito");
+    if (!jsonResponse.ok) {
+      const errorText = await jsonResponse.text();
+      console.error("❌ Error en Discord (JSON):", errorText.substring(0, 100));
     } else {
-      const errorText = await response.text();
-      console.error("❌ Error enviando a Discord (Respuesta no OK):", errorText);
+      console.log("✅ Datos enviados a Discord");
+    }
+
+    // 2. Intentar enviar la imagen por SEPARADO solo si existe localmente
+    if (imagePath && fs.existsSync(imagePath)) {
+      console.log("📎 Enviando imagen adjunta...");
+      const imgFormData = new FormData();
+      const fileBuffer = fs.readFileSync(imagePath);
+      const blob = new Blob([fileBuffer]);
+      imgFormData.append("file", blob, finalFilename);
+      
+      // Actualizar el embed con el attachment si se envía como FormData
+      embed.image = { url: `attachment://${finalFilename}` };
+      // Enviar de nuevo con la imagen adjunta
+      await fetch(DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        },
+        body: imgFormData
+      });
     }
   } catch (error) {
-    console.error("❌ Error de red Discord (Excepción):", error.message);
-    console.error(error);
+    console.error("❌ Excepción en Discord:", error.message);
   }
 }
 
@@ -240,8 +255,20 @@ app.post("/api/admin/designs", verifyAdmin, upload.single("image"), async (req, 
   const { price } = req.body;
 
   try {
+    let imageUrl = `/tattoo/${req.file.filename}`;
+
+    // Si Cloudinary está configurado, subir allí para persistencia
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "tattoo_studio/designs"
+      });
+      imageUrl = result.secure_url;
+      // Opcional: eliminar el archivo local después de subirlo
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+
     const newDesign = new Design({
-      imageUrl: `/tattoo/${req.file.filename}`,
+      imageUrl,
       price: (price ?? "").toString().trim()
     });
     await newDesign.save();
@@ -256,9 +283,20 @@ app.delete("/api/admin/designs/:id", verifyAdmin, async (req, res) => {
   try {
     const design = await Design.findById(req.params.id);
     if (design) {
-      // Eliminar el archivo físico
-      const filePath = path.join(__dirname, "public", design.imageUrl);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      // Eliminar de Cloudinary si es una URL de Cloudinary
+      if (design.imageUrl.includes("cloudinary.com")) {
+        try {
+          // Extraer el public_id de la URL
+          const publicId = design.imageUrl.split("/").slice(-2).join("/").split(".")[0];
+          await cloudinary.uploader.destroy(publicId);
+        } catch (e) {
+          console.error("Error al eliminar de Cloudinary:", e.message);
+        }
+      } else {
+        // Eliminar el archivo físico local
+        const filePath = path.join(__dirname, "public", design.imageUrl);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
       
       await Design.findByIdAndDelete(req.params.id);
       res.json({ message: "Diseño eliminado" });
@@ -297,8 +335,20 @@ app.post("/api/admin/portfolio", verifyAdmin, upload.single("image"), async (req
   }
 
   try {
+    let imageUrl = `/tattoo/${req.file.filename}`;
+
+    // Si Cloudinary está configurado, subir allí para persistencia
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "tattoo_studio/portfolio"
+      });
+      imageUrl = result.secure_url;
+      // Opcional: eliminar el archivo local después de subirlo
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    }
+
     const newPortfolio = new Portfolio({
-      imageUrl: `/tattoo/${req.file.filename}`
+      imageUrl
     });
     await newPortfolio.save();
     res.status(201).json(newPortfolio);
@@ -312,9 +362,20 @@ app.delete("/api/admin/portfolio/:id", verifyAdmin, async (req, res) => {
   try {
     const item = await Portfolio.findById(req.params.id);
     if (item) {
-      // Eliminar el archivo físico
-      const filePath = path.join(__dirname, "public", item.imageUrl);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      // Eliminar de Cloudinary si es una URL de Cloudinary
+      if (item.imageUrl.includes("cloudinary.com")) {
+        try {
+          // Extraer el public_id de la URL
+          const publicId = item.imageUrl.split("/").slice(-2).join("/").split(".")[0];
+          await cloudinary.uploader.destroy(publicId);
+        } catch (e) {
+          console.error("Error al eliminar de Cloudinary:", e.message);
+        }
+      } else {
+        // Eliminar el archivo físico local
+        const filePath = path.join(__dirname, "public", item.imageUrl);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
       
       await Portfolio.findByIdAndDelete(req.params.id);
       res.json({ message: "Imagen de portafolio eliminada" });
