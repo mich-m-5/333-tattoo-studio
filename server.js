@@ -18,6 +18,7 @@ folders.forEach(folder => {
 
 // --- FUNCIÓN DE NOTIFICACIÓN POR DISCORD (CON IMAGEN) ---
 async function enviarNotificacionDiscord(data, filename) {
+  // Webhook del usuario
   const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1482146605791711296/gvrOnZDJmtXLncsBJqpm6uYRxCS79h1AWDw8LTsASYLlbKLytr8xGShwJsFzT0KvM8wj";
 
   let imagePath = null;
@@ -27,9 +28,21 @@ async function enviarNotificacionDiscord(data, filename) {
     imagePath = path.join(__dirname, "uploads", filename);
     finalFilename = filename;
   } else if (data.chosenDesignUrl) {
-    const cleanPath = decodeURIComponent(data.chosenDesignUrl).replace(/\\/g, "/");
-    imagePath = path.join(__dirname, "public", cleanPath);
-    finalFilename = path.basename(cleanPath);
+    // Limpiar la URL para obtener la ruta relativa correcta
+    let relativePath = decodeURIComponent(data.chosenDesignUrl).replace(/\\/g, "/");
+    // Si la URL es absoluta (empieza con http), intentar extraer la ruta relativa
+    if (relativePath.startsWith("http")) {
+      try {
+        const url = new URL(relativePath);
+        relativePath = url.pathname;
+      } catch (e) {
+        console.error("Error al parsear URL absoluta:", relativePath);
+      }
+    }
+    // Asegurar que no empiece con / para path.join
+    const cleanRelativePath = relativePath.startsWith("/") ? relativePath.substring(1) : relativePath;
+    imagePath = path.join(__dirname, "public", cleanRelativePath);
+    finalFilename = path.basename(cleanRelativePath);
   }
 
   const embed = {
@@ -57,7 +70,11 @@ async function enviarNotificacionDiscord(data, filename) {
       const blob = new Blob([fileBuffer]);
       formData.append("file", blob, finalFilename);
     } else {
-      console.log("ℹ️ No se adjuntará imagen (no existe o no se proporcionó)");
+      console.log("ℹ️ No se pudo adjuntar imagen. Ruta:", imagePath);
+      // Si no existe el archivo pero hay una URL de diseño escogido, enviarla en el texto
+      if (data.chosenDesignUrl) {
+        embed.description = `**Diseño escogido:** ${data.chosenDesignUrl}`;
+      }
     }
 
     formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
@@ -149,7 +166,8 @@ const Review = mongoose.model("Review", reviewSchema)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Si es un diseño de admin va a 'public/tattoo', si es referencia de cliente a 'uploads'
-    const folder = req.path.includes("admin") ? "public/tattoo" : "uploads";
+    const isTattoo = req.path.includes("admin") || req.path.includes("designs") || req.path.includes("portfolio");
+    const folder = isTattoo ? "public/tattoo" : "uploads";
     cb(null, path.join(__dirname, folder))
   },
   filename: (req, file, cb) => {
