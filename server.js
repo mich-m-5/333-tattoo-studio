@@ -258,13 +258,17 @@ app.post("/api/admin/designs", verifyAdmin, upload.single("image"), async (req, 
     let imageUrl = `/tattoo/${req.file.filename}`;
 
     // Si Cloudinary está configurado, subir allí para persistencia
-    if (process.env.CLOUDINARY_CLOUD_NAME) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "tattoo_studio/designs"
-      });
-      imageUrl = result.secure_url;
-      // Opcional: eliminar el archivo local después de subirlo
-      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "tattoo_studio/designs"
+        });
+        imageUrl = result.secure_url;
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      } catch (uploadErr) {
+        console.error("Error subiendo a Cloudinary:", uploadErr.message);
+        // Si falla Cloudinary, seguimos con la URL local para que no de error 500
+      }
     }
 
     const newDesign = new Design({
@@ -338,13 +342,16 @@ app.post("/api/admin/portfolio", verifyAdmin, upload.single("image"), async (req
     let imageUrl = `/tattoo/${req.file.filename}`;
 
     // Si Cloudinary está configurado, subir allí para persistencia
-    if (process.env.CLOUDINARY_CLOUD_NAME) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "tattoo_studio/portfolio"
-      });
-      imageUrl = result.secure_url;
-      // Opcional: eliminar el archivo local después de subirlo
-      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "tattoo_studio/portfolio"
+        });
+        imageUrl = result.secure_url;
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      } catch (uploadErr) {
+        console.error("Error subiendo a Cloudinary (portfolio):", uploadErr.message);
+      }
     }
 
     const newPortfolio = new Portfolio({

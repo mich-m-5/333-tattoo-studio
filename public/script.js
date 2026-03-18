@@ -70,26 +70,57 @@ async function handleFormSubmission() {
     clearTimeout(timeoutId);
 
     if (response.ok) {
-      showToast("¡HECHO!", "Tu idea está en camino. Te contactaremos en unas 24h.", "success");
-      form.reset();
-      currentStep = 1;
-      updateFormSteps();
-      document.getElementById("fileNameDisplay").textContent = "Sin archivos seleccionados";
+      showToast("¡HECHO!", "Tu idea está en camino. Redirigiendo a WhatsApp...", "success");
       
-      // Limpiar selección de diseño si existe
-      const selectedDesignContainer = document.getElementById("selectedDesignContainer");
-      const chosenDesignInput = document.getElementById("chosenDesignInput");
-      const fileUploadSection = document.getElementById("fileUploadSection");
-      const fileInput = document.getElementById("fileInput");
-      const designChosenMessage = document.getElementById("designChosenMessage");
+      // --- REDIRECCIÓN A WHATSAPP ---
+      const name = formData.get("name");
+      const whatsapp = formData.get("whatsapp");
+      const age = formData.get("age");
+      const size = formData.get("tattoo-size");
+      const style = formData.get("style");
+      const idea = formData.get("idea");
+      const chosenDesign = formData.get("chosenDesignUrl");
 
-      if (selectedDesignContainer) selectedDesignContainer.style.display = "none";
-      if (chosenDesignInput) chosenDesignInput.value = "";
-      if (fileUploadSection) fileUploadSection.style.display = "block";
-      if (fileInput) fileInput.setAttribute("required", "");
-      if (designChosenMessage) designChosenMessage.style.display = "none";
-      const subtitle = document.getElementById("step3Subtitle");
-      if (subtitle) subtitle.textContent = "Cuéntanos más detalles";
+      let message = `🔥 *NUEVA COTIZACIÓN RECIBIDA*\n\n`;
+      message += `👤 *Nombre:* ${name}\n`;
+      message += `📱 *WhatsApp:* ${whatsapp}\n`;
+      message += `🎂 *Edad:* ${age}\n`;
+      message += `📏 *Tamaño:* ${size}\n`;
+      message += `🎨 *Estilo:* ${style}\n`;
+      message += `💡 *Idea:* ${idea}\n`;
+      
+      if (chosenDesign) {
+        message += `\n🖼️ *Diseño escogido:* ${chosenDesign}`;
+      } else {
+        message += `\n📎 *Adjunté una imagen de referencia en el formulario.*`;
+      }
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/593984185834?text=${encodedMessage}`;
+      
+      // Pequeña pausa para que el usuario vea el toast
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+        form.reset();
+        currentStep = 1;
+        updateFormSteps();
+        document.getElementById("fileNameDisplay").textContent = "Sin archivos seleccionados";
+        
+        // Limpiar selección de diseño si existe
+        const selectedDesignContainer = document.getElementById("selectedDesignContainer");
+        const chosenDesignInput = document.getElementById("chosenDesignInput");
+        const fileUploadSection = document.getElementById("fileUploadSection");
+        const fileInput = document.getElementById("fileInput");
+        const designChosenMessage = document.getElementById("designChosenMessage");
+
+        if (selectedDesignContainer) selectedDesignContainer.style.display = "none";
+        if (chosenDesignInput) chosenDesignInput.value = "";
+        if (fileUploadSection) fileUploadSection.style.display = "block";
+        if (fileInput) fileInput.setAttribute("required", "");
+        if (designChosenMessage) designChosenMessage.style.display = "none";
+        const subtitle = document.getElementById("step3Subtitle");
+        if (subtitle) subtitle.textContent = "Cuéntanos más detalles";
+      }, 1500);
     } else {
       try {
         const errorData = await response.json();
