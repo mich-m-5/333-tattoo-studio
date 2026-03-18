@@ -103,8 +103,11 @@
         </div>
       </div>
 
-      <div class="add-review">
-        <h3>DÉJANOS TU RESEÑA</h3>
+      <div id="reviewFormContainer" class="add-review" style="display: none;">
+        <div class="form-header-row">
+          <h3>DÉJANOS TU RESEÑA</h3>
+          <button type="button" id="closeReviewBtn" class="close-btn">&times;</button>
+        </div>
         <form id="reviewForm">
           <div class="input-field">
             <label>TU NOMBRE</label>
@@ -142,6 +145,10 @@
           
           <button type="submit" class="btn-review">PUBLICAR RESEÑA</button>
         </form>
+      </div>
+      
+      <div id="showReviewBtnContainer" style="text-align: center; margin-top: 20px;">
+        <button id="showReviewBtn" class="btn-review" style="width: auto; padding: 15px 40px;">DÉJANOS TU RESEÑA</button>
       </div>
     </div>
   </div>
