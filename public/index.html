@@ -55,18 +55,21 @@
 </section>
 
 <section id="about">
-  <h2>Tatuadores</h2>
-  <div class="artists">
-    <a href="https://www.instagram.com/htts_michael._/" target="_blank" class="artist-card">
-      <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg" alt="Tatuador 1">
-      <h3>Mich Muzo</h3>
-      <p>Artista del tatuaje enfocado en los detalles y en transformar ideas en diseños personalizados únicos.</p>
-    </a>
-    <a href="https://www.instagram.com/333._uio/" target="_blank" class="artist-card">
-      <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg" alt="Tatuador 2">
-      <h3>Tomas Segura</h3>
-      <p>Artista urbano y arte callejero. Detallista y apasionado por la tinta. Black Work-Realismo-Letering</p>
-    </a>
+  <div class="about-overlay"></div>
+  <div class="about-content-wrapper">
+    <h2>Tatuadores</h2>
+    <div class="artists">
+      <a href="https://www.instagram.com/htts_michael._/" target="_blank" class="artist-card">
+        <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg" alt="Mich Muzo">
+        <h3>Mich Muzo</h3>
+        <p>Artista del tatuaje enfocado en los detalles y en transformar ideas en diseños personalizados únicos.</p>
+      </a>
+      <a href="https://www.instagram.com/333._uio/" target="_blank" class="artist-card">
+        <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg" alt="Tomas Segura">
+        <h3>Tomas Segura</h3>
+        <p>Artista urbano y arte callejero. Detallista y apasionado por la tinta. Black Work-Realismo-Letering</p>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -103,8 +106,11 @@
         </div>
       </div>
 
-      <div class="add-review">
-        <h3>DÉJANOS TU RESEÑA</h3>
+      <div id="reviewFormContainer" class="add-review" style="display: none;">
+        <div class="form-header-row">
+          <h3>DÉJANOS TU RESEÑA</h3>
+          <button type="button" id="closeReviewBtn" class="close-btn">&times;</button>
+        </div>
         <form id="reviewForm">
           <div class="input-field">
             <label>TU NOMBRE</label>
@@ -142,6 +148,10 @@
           
           <button type="submit" class="btn-review">PUBLICAR RESEÑA</button>
         </form>
+      </div>
+      
+      <div id="showReviewBtnContainer" style="text-align: center; margin-top: 20px;">
+        <button id="showReviewBtn" class="btn-review" style="width: auto; padding: 15px 40px;">DÉJANOS TU RESEÑA</button>
       </div>
     </div>
   </div>
