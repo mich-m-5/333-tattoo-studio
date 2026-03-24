@@ -172,7 +172,7 @@
             <h1>TATUADORES</h1>
         </div>
         <!-- Foto pequeña circular que se solapa -->
-        <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg" class="profile-overlap" alt="333 Studio">
+        <img src="tattoo/TATUADORES.jpeg" class="profile-overlap" alt="333 Studio">
     </header>
 
     <section class="arte-section">
@@ -205,7 +205,7 @@
                 </div>
             </div>
 
-            <h2 class="section-title-big">DIBUJOS & BOCETOS</h2>
+            <h2 class="section-title-big">ARTE</h2>
             <div class="marquee-wrapper">
                 <div id="dibujos-marquee" class="marquee-content animate-right">
                     <!-- Contenido duplicado para loop infinito -->
@@ -215,7 +215,69 @@
         </div>
     </section>
 
+    <!-- Lightbox para Nuestro Arte -->
+    <div id="lightbox" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; cursor: pointer;" onclick="closeFull()">
+        <span style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; font-weight: bold;">&times;</span>
+        <div class="lightbox-content" style="max-width: 90%; max-height: 90%;" onclick="event.stopPropagation()">
+            <img id="lightbox-img" src="" style="max-width: 100%; max-height: 90vh; border-radius: 5px; box-shadow: 0 0 30px rgba(0,0,0,0.5);">
+        </div>
+    </div>
+
+    <!-- Música de fondo (Heaven and Hell - Black Sabbath) -->
+    <div id="bg-music-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);">
+        <button id="music-toggle" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">
+            <i class="fas fa-play"></i>
+        </button>
+        <span style="font-size: 12px; color: white; font-family: sans-serif; margin-right: 10px; white-space: nowrap;">Heaven and Hell - Black Sabbath</span>
+        <div id="youtube-player" style="display: none;"></div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
+        let player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtube-player', {
+                height: '0',
+                width: '0',
+                videoId: 'RVUK2rtAkJE',
+                playerVars: {
+                    'autoplay': 1,
+                    'loop': 1,
+                    'playlist': 'RVUK2rtAkJE',
+                    'controls': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            const toggleBtn = document.getElementById('music-toggle');
+            toggleBtn.addEventListener('click', () => {
+                if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                    toggleBtn.innerHTML = '<i class="fas fa-play"></i>';
+                } else {
+                    player.playVideo();
+                    toggleBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                }
+            });
+            player.playVideo();
+        }
+
+        function onPlayerStateChange(event) {
+            const toggleBtn = document.getElementById('music-toggle');
+            if (event.data === YT.PlayerState.PLAYING) {
+                toggleBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                toggleBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+
         async function loadArte() {
             // Cargar Tags (Videos)
             const resTags = await fetch('/api/arte/tags');
@@ -230,28 +292,51 @@
             const resGraf = await fetch('/api/arte/graffiti');
             const grafs = await resGraf.json();
             const grafContainer = document.getElementById('graffiti-marquee');
-            const grafHtml = grafs.map(img => `
-                <div class="marquee-item" onclick="openFull('${img.imageUrl}')">
-                    <img src="${img.imageUrl}">
-                </div>
-            `).join('');
-            grafContainer.innerHTML = grafHtml + grafHtml; // Duplicar para el loop
+            
+            // Función para asegurar suficiente contenido para el loop
+            const generateLoopHtml = (items) => {
+                let html = items.map(img => `
+                    <div class="marquee-item" onclick="openFull('${img.imageUrl}')">
+                        <img src="${img.imageUrl}">
+                    </div>
+                `).join('');
+                // Si hay pocos items, duplicamos más veces para llenar el ancho
+                if (items.length > 0 && items.length < 6) {
+                    return html + html + html + html;
+                }
+                return html + html;
+            };
+
+            grafContainer.innerHTML = generateLoopHtml(grafs);
 
             // Cargar Dibujos (Animación Derecha)
             const resDib = await fetch('/api/arte/dibujos');
             const dibs = await resDib.json();
             const dibContainer = document.getElementById('dibujos-marquee');
-            const dibHtml = dibs.map(img => `
-                <div class="marquee-item" onclick="openFull('${img.imageUrl}')">
-                    <img src="${img.imageUrl}">
-                </div>
-            `).join('');
-            dibContainer.innerHTML = dibHtml + dibHtml; // Duplicar para el loop
+            dibContainer.innerHTML = generateLoopHtml(dibs);
+            
+            muteAllVideos();
         }
 
         function openFull(url) {
-            // Usar el sistema de la página principal o una alerta simple por ahora
-            window.open(url, '_blank');
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = url;
+            lightbox.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFull() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function muteAllVideos() {
+            document.querySelectorAll('video').forEach(v => {
+                v.muted = true;
+                v.setAttribute('muted', '');
+            });
         }
 
         window.onload = loadArte;

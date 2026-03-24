@@ -385,6 +385,96 @@
   <!-- Contenedor de Notificaciones (Toasts) -->
   <div id="toastContainer" class="toast-container"></div>
 
+  <!-- Música de fondo (Heaven and Hell - Black Sabbath) -->
+  <div id="bg-music-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px);">
+    <button id="music-toggle" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">
+      <i class="fas fa-play"></i>
+    </button>
+    <span style="font-size: 12px; color: white; font-family: sans-serif; margin-right: 10px; white-space: nowrap;">Heaven and Hell - Black Sabbath</span>
+    <div id="youtube-player" style="display: none;"></div>
+  </div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    let player;
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-player', {
+        height: '0',
+        width: '0',
+        videoId: 'RVUK2rtAkJE',
+        playerVars: {
+          'autoplay': 1,
+          'loop': 1,
+          'playlist': 'RVUK2rtAkJE',
+          'controls': 0,
+          'showinfo': 0,
+          'modestbranding': 1
+        },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerReady(event) {
+      const toggleBtn = document.getElementById('music-toggle');
+      toggleBtn.addEventListener('click', () => {
+        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+          player.pauseVideo();
+          toggleBtn.innerHTML = '<i class="fas fa-play"></i>';
+        } else {
+          player.playVideo();
+          toggleBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        }
+      });
+      
+      // Intentar reproducir automáticamente (podría fallar por políticas del navegador)
+      player.playVideo();
+    }
+
+    function onPlayerStateChange(event) {
+      const toggleBtn = document.getElementById('music-toggle');
+      if (event.data === YT.PlayerState.PLAYING) {
+        toggleBtn.innerHTML = '<i class="fas fa-pause"></i>';
+      } else {
+        toggleBtn.innerHTML = '<i class="fas fa-play"></i>';
+      }
+    }
+
+    // Mute all videos on the page
+    function muteAllVideos() {
+      const videos = document.querySelectorAll('video');
+      videos.forEach(v => {
+        v.muted = true;
+        v.setAttribute('muted', '');
+      });
+    }
+    
+    // Observer for dynamic videos
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.addedNodes) {
+          mutation.addedNodes.forEach((node) => {
+            if (node.tagName === 'VIDEO') {
+              node.muted = true;
+              node.setAttribute('muted', '');
+            } else if (node.querySelectorAll) {
+              const videos = node.querySelectorAll('video');
+              videos.forEach(v => {
+                v.muted = true;
+                v.setAttribute('muted', '');
+              });
+            }
+          });
+        }
+      });
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('load', muteAllVideos);
+  </script>
+
   <script src="script.js?v=2.0"></script>
 </body>
 </html>
