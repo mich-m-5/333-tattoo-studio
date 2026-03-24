@@ -165,6 +165,7 @@ const Design = mongoose.model("Design", designSchema)
 // --- NUEVO ESQUEMA PARA EL PORTAFOLIO ---
 const portfolioSchema = new mongoose.Schema({
   imageUrl: String,
+  mediaType: { type: String, default: "image" }, // "image" o "video"
   createdAt: { type: Date, default: Date.now }
 })
 const Portfolio = mongoose.model("Portfolio", portfolioSchema)
@@ -174,7 +175,8 @@ const reviewSchema = new mongoose.Schema({
   name: String,
   rating: Number,
   comment: String,
-  tattooImageUrl: String, // Nueva campo para la foto del tatuaje
+  tattooImageUrl: String,
+  tattooMediaType: { type: String, default: "image" }, // "image" o "video"
   createdAt: { type: Date, default: Date.now }
 })
 const Review = mongoose.model("Review", reviewSchema)
@@ -194,10 +196,10 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
+    if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
       cb(null, true);
     } else {
-      cb(new Error("Solo se permiten imágenes"));
+      cb(new Error("Solo se permiten imágenes o videos"));
     }
   }
 })
@@ -335,7 +337,8 @@ app.get("/api/portfolio", async (req, res) => {
       }
       return {
         ...p.toObject(),
-        imageUrl: imageUrl
+        imageUrl: imageUrl,
+        mediaType: p.mediaType || "image"
       };
     });
     res.json(normalized);
@@ -348,17 +351,20 @@ app.get("/api/portfolio", async (req, res) => {
 // Agregar al portafolio (Admin)
 app.post("/api/admin/portfolio", verifyAdmin, upload.single("image"), async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: "Debes subir una imagen" });
+    return res.status(400).json({ error: "Debes subir un archivo" });
   }
 
   try {
     let imageUrl = `/tattoo/${req.file.filename}`;
+    const isVideo = req.file.mimetype.startsWith("video/");
+    const mediaType = isVideo ? "video" : "image";
 
     // Si Cloudinary está configurado, subir allí para persistencia
     if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: "tattoo_studio/portfolio"
+          folder: "tattoo_studio/portfolio",
+          resource_type: isVideo ? "video" : "image"
         });
         imageUrl = result.secure_url;
         if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
@@ -368,7 +374,8 @@ app.post("/api/admin/portfolio", verifyAdmin, upload.single("image"), async (req
     }
 
     const newPortfolio = new Portfolio({
-      imageUrl
+      imageUrl,
+      mediaType
     });
     await newPortfolio.save();
     res.status(201).json(newPortfolio);
@@ -421,7 +428,7 @@ app.get("/api/reviews", async (req, res) => {
 
 // Agregar una reseña (Público con contraseña)
 app.post("/api/reviews", async (req, res) => {
-  const { name, rating, comment, password, tattooImageUrl } = req.body;
+  const { name, rating, comment, password, tattooImageUrl, tattooMediaType } = req.body;
   if (!name || !rating || !comment || !password) {
     return res.status(400).json({ error: "Todos los campos son obligatorios" });
   }
@@ -431,7 +438,13 @@ app.post("/api/reviews", async (req, res) => {
   }
 
   try {
-    const newReview = new Review({ name, rating, comment, tattooImageUrl });
+    const newReview = new Review({ 
+      name, 
+      rating, 
+      comment, 
+      tattooImageUrl, 
+      tattooMediaType: tattooMediaType || "image" 
+    });
     await newReview.save();
     res.status(201).json(newReview);
   } catch (error) {

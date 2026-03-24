@@ -280,8 +280,8 @@
                     <h3>Agregar al Portafolio</h3>
                     <form id="portfolioForm" class="form-row" style="grid-template-columns: 1fr auto;">
                         <div class="form-group">
-                            <label>Imagen del Tatuaje</label>
-                            <input type="file" id="portfolioImage" accept="image/*" required>
+                            <label>Imagen o Video del Tatuaje</label>
+                            <input type="file" id="portfolioImage" accept="image/*,video/*" required>
                         </div>
                         <button type="submit" class="btn">Subir al Porta</button>
                     </form>
@@ -389,9 +389,12 @@
                 const list = document.getElementById('portfolioList');
                 list.innerHTML = data.map(p => `
                     <div class="item-card">
-                        <img src="${encodeURI(p.imageUrl)}">
+                        ${p.mediaType === 'video' 
+                            ? `<video src="${encodeURI(p.imageUrl)}" muted loop style="width:100%; aspect-ratio:1/1; object-fit:cover;"></video>` 
+                            : `<img src="${encodeURI(p.imageUrl)}">`
+                        }
                         <div class="item-info">
-                            <span style="font-size:12px; color:#555;">Tatuaje Realizado</span>
+                            <span style="font-size:12px; color:#555;">${p.mediaType === 'video' ? 'Video' : 'Imagen'}</span>
                             <button class="btn btn-danger btn-sm" onclick="deleteItem('portfolio', '${p._id}')">
                                 <i class="fas fa-trash"></i>
                             </button>

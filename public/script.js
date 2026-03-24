@@ -272,7 +272,13 @@ async function fetchReviews() {
 
     reviewsList.innerHTML = reviews.map(r => `
       <div class="review-card">
-        ${r.tattooImageUrl ? `<img src="${encodeURI(r.tattooImageUrl)}" class="review-tattoo-thumb" alt="Tatuaje">` : ''}
+        ${r.tattooImageUrl 
+          ? (r.tattooMediaType === 'video' 
+              ? `<video src="${encodeURI(r.tattooImageUrl)}" class="review-tattoo-thumb" muted loop autoplay playsinline></video>`
+              : `<img src="${encodeURI(r.tattooImageUrl)}" class="review-tattoo-thumb" alt="Tatuaje">`
+            )
+          : ''
+        }
         <div class="review-body">
           <div class="review-header">
             <span class="review-name">${r.name}</span>
@@ -315,18 +321,27 @@ async function fetchPortfolioForReviews() {
     const response = await fetch("/api/portfolio");
     const portfolio = await response.json();
 
-    selector.innerHTML = portfolio.map(item => `
-      <img src="${encodeURI(item.imageUrl)}" class="portfolio-item-select" onclick="selectTattooForReview(this, '${item.imageUrl}')" alt="Tatuaje">
-    `).join('');
+    selector.innerHTML = portfolio.map(item => {
+      if (item.mediaType === 'video') {
+        return `
+          <video src="${encodeURI(item.imageUrl)}" class="portfolio-item-select" muted loop onclick="selectTattooForReview(this, '${item.imageUrl}', 'video')"></video>
+        `;
+      } else {
+        return `
+          <img src="${encodeURI(item.imageUrl)}" class="portfolio-item-select" onclick="selectTattooForReview(this, '${item.imageUrl}', 'image')" alt="Tatuaje">
+        `;
+      }
+    }).join('');
   } catch (e) {
     selector.innerHTML = '<p style="color:red;">Error al cargar portafolio</p>';
   }
 }
 
-function selectTattooForReview(img, url) {
+function selectTattooForReview(element, url, type) {
   document.querySelectorAll(".portfolio-item-select").forEach(el => el.classList.remove("selected"));
-  img.classList.add("selected");
+  element.classList.add("selected");
   document.getElementById("selectedTattooUrl").value = url;
+  document.getElementById("selectedTattooMediaType").value = type;
 }
 
 // Inicializar selección de estrellas
@@ -354,6 +369,7 @@ async function handleReviewSubmission(e) {
   const comment = document.getElementById("reviewComment").value;
   const password = document.getElementById("reviewPassword").value;
   const tattooImageUrl = document.getElementById("selectedTattooUrl").value;
+  const tattooMediaType = document.getElementById("selectedTattooMediaType").value;
 
   const btn = e.target.querySelector("button");
   const originalText = btn.textContent;
@@ -364,7 +380,7 @@ async function handleReviewSubmission(e) {
     const response = await fetch("/api/reviews", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, rating, comment, password, tattooImageUrl })
+      body: JSON.stringify({ name, rating, comment, password, tattooImageUrl, tattooMediaType })
     });
 
     if (response.ok) {
@@ -374,6 +390,7 @@ async function handleReviewSubmission(e) {
       document.getElementById("ratingValue").value = 0; 
       document.querySelectorAll(".portfolio-item-select").forEach(el => el.classList.remove("selected"));
       document.getElementById("selectedTattooUrl").value = "";
+      document.getElementById("selectedTattooMediaType").value = "";
       fetchReviews();
     } else {
       const data = await response.json();
@@ -416,9 +433,17 @@ async function fetchPortfolio() {
       return;
     }
 
-    gallery.innerHTML = portfolio.map(item => `
-      <img src="${encodeURI(item.imageUrl)}" alt="Tatuaje Realizado" class="reveal">
-    `).join('');
+    gallery.innerHTML = portfolio.map(item => {
+      if (item.mediaType === 'video') {
+        return `
+          <div class="portfolio-video-container">
+            <video src="${encodeURI(item.imageUrl)}" autoplay muted loop playsinline class="reveal"></video>
+          </div>
+        `;
+      } else {
+        return `<img src="${encodeURI(item.imageUrl)}" alt="Tatuaje Realizado" class="reveal">`;
+      }
+    }).join('');
 
     // Re-inicializar scroll reveal
     initScrollReveal();
