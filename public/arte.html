@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuestro Arte | 333 Tattoo Studio</title>
-    <link rel="icon" href="tattoo/WhatsApp\ Image\ 2026-03-10\ at\ 10.06.21\ PM.jpeg" type="image/jpeg">
+    <link rel="icon" href="tattoo/WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg" type="image/jpeg">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -267,13 +267,30 @@
 
         async function loadArte() {
             // Función para asegurar suficiente contenido para el loop
-            const generateLoopHtml = (items) => {
+            const generateLoopHtml = (items, isArtist = false) => {
                 if (items.length === 0) return '';
-                let html = items.map(img => `
-                    <div class="marquee-item" onclick="openFull('${img.imageUrl}')">
-                        <img src="${img.imageUrl}">
-                    </div>
-                `).join('');
+                let html = items.map(img => {
+                    let linkStart = '';
+                    let linkEnd = '';
+                    let onClick = `onclick="openFull('${img.imageUrl}')"`;
+                    
+                    if (isArtist) {
+                        // Enlace según categoría o nombre
+                        const instaUrl = img.category === 'tomas' 
+                            ? 'https://www.instagram.com/333._uio/' 
+                            : 'https://www.instagram.com/htts_michael._/';
+                        
+                        linkStart = `<a href="${instaUrl}" target="_blank" style="display:block; width:100%; height:100%;">`;
+                        linkEnd = `</a>`;
+                        onClick = ''; // Desactivar lightbox si es artista
+                    }
+
+                    return `
+                        <div class="marquee-item" ${onClick}>
+                            ${linkStart}<img src="${img.imageUrl}">${linkEnd}
+                        </div>
+                    `;
+                }).join('');
                 // Duplicamos varias veces para asegurar que el marquee siempre esté lleno
                 return html + html + html + html;
             };
@@ -284,28 +301,33 @@
                 const michData = await resMich.json();
                 const resTomas = await fetch('/api/arte/tomas');
                 const tomasData = await resTomas.json();
-                let combined = [...michData, ...tomasData];
+                
+                // Añadir categoría manualmente para identificar el link correcto
+                const michCategorized = michData.map(d => ({...d, category: 'mich'}));
+                const tomasCategorized = tomasData.map(d => ({...d, category: 'tomas'}));
+                
+                let combined = [...michCategorized, ...tomasCategorized];
                 
                 // Si no hay fotos en la base de datos, usamos locales por defecto
                 if (combined.length === 0) {
                     combined = [
-                        { imageUrl: 'tattoo/mich.jpeg' },
-                        { imageUrl: 'tattoo/TATUADORES.jpeg' },
-                        { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg' },
-                        { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg' }
+                        { imageUrl: 'tattoo/mich.jpeg', category: 'mich' },
+                        { imageUrl: 'tattoo/TATUADORES.jpeg', category: 'mich' },
+                        { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg', category: 'mich' },
+                        { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg', category: 'tomas' }
                     ];
                 }
-                document.getElementById('nosotros-marquee').innerHTML = generateLoopHtml(combined);
+                document.getElementById('nosotros-marquee').innerHTML = generateLoopHtml(combined, true);
             } catch (e) { 
                 console.error("Error cargando Nosotros:", e);
                 // Fallback manual en caso de error de red
                 const fallback = [
-                    { imageUrl: 'tattoo/mich.jpeg' },
-                    { imageUrl: 'tattoo/TATUADORES.jpeg' },
-                    { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg' },
-                    { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg' }
+                    { imageUrl: 'tattoo/mich.jpeg', category: 'mich' },
+                    { imageUrl: 'tattoo/TATUADORES.jpeg', category: 'mich' },
+                    { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg', category: 'mich' },
+                    { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg', category: 'tomas' }
                 ];
-                document.getElementById('nosotros-marquee').innerHTML = generateLoopHtml(fallback);
+                document.getElementById('nosotros-marquee').innerHTML = generateLoopHtml(fallback, true);
             }
 
             // Cargar Tags (Videos)
