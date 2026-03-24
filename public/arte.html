@@ -7,180 +7,256 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .arte-section {
-            padding: 100px 5%;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+
+        .arte-hero {
+            height: 60vh;
             position: relative;
-            background-image: url('tattoo/WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg');
+            background-image: url('tattoo/WhatsApp Image 2026-03-10 at 10.06.21 PM.jpeg'); /* Foto de fondo */
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .arte-overlay {
+        .arte-hero::before {
+            content: "";
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.6);
             z-index: 1;
         }
-        .arte-content {
+        .hero-banner-content {
             position: relative;
             z-index: 2;
-            max-width: 1200px;
+            text-align: center;
+        }
+        .hero-banner-content h1 {
+            font-size: 80px;
+            text-transform: uppercase;
+            letter-spacing: 15px;
+            font-weight: 900;
+            text-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+        .profile-overlap {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 5px solid #000;
+            object-fit: cover;
+            position: absolute;
+            bottom: -90px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: #111;
+        }
+
+        .arte-section {
+            padding: 120px 5% 60px;
+            background: #000;
+        }
+        .arte-content {
+            max-width: 1400px;
             margin: 0 auto;
         }
-        .artist-intro {
+
+        /* Tatuadores Minimalistas */
+        .artists-row {
             display: flex;
-            gap: 40px;
-            align-items: center;
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            padding: 40px;
+            justify-content: center;
+            gap: 80px;
+            margin-bottom: 100px;
+            flex-wrap: wrap;
+        }
+        .mini-artist-card {
+            text-align: center;
+            max-width: 350px;
+        }
+        .mini-artist-card img {
+            width: 220px;
+            height: 220px;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 60px;
-        }
-        .artist-intro img {
-            width: 300px;
-            height: 400px;
             object-fit: cover;
-            border-radius: 15px;
-        }
-        .artist-info h2 {
-            font-size: 42px;
-            margin-bottom: 10px;
-            color: #0070c9;
-        }
-        .artist-info .title {
-            font-size: 18px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 2px;
             margin-bottom: 20px;
-            display: block;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .artist-info p {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #ccc;
+        .mini-artist-card h3 { font-size: 28px; color: #0070c9; margin-bottom: 5px; }
+        .mini-artist-card span { color: #666; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; }
+        .mini-artist-card p { color: #aaa; margin-top: 15px; line-height: 1.6; }
+
+        /* Sección Tags/Firmas */
+        .tags-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 60px 0;
         }
-        .arte-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .arte-item {
-            position: relative;
-            border-radius: 12px;
+        .tag-video {
+            width: 45%;
+            max-width: 500px;
+            border-radius: 15px;
             overflow: hidden;
-            aspect-ratio: 1/1;
+            border: 1px solid #222;
         }
-        .arte-item img, .arte-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .tag-video video { width: 100%; display: block; }
+
+        /* Galerías Animadas Infinitas */
+        .marquee-wrapper {
+            width: 100vw;
+            margin-left: calc(-5vw);
+            overflow: hidden;
+            padding: 40px 0;
+            position: relative;
+        }
+        .marquee-content {
+            display: flex;
+            gap: 20px;
+            width: max-content;
+        }
+        
+        /* Animación Izquierda */
+        .animate-left { animation: scrollLeft 40s linear infinite; }
+        /* Animación Derecha */
+        .animate-right { animation: scrollRight 40s linear infinite; }
+
+        @keyframes scrollLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        @keyframes scrollRight {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
+        }
+
+        .marquee-item {
+            width: 350px;
+            height: 350px;
+            flex-shrink: 0;
+            border-radius: 15px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .marquee-item img {
+            width: 100%; height: 100%; object-fit: cover;
             transition: 0.5s;
         }
-        .arte-item:hover img, .arte-item:hover video {
-            transform: scale(1.1);
-        }
-        .arte-desc {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%;
-            padding: 20px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
-            opacity: 0;
-            transition: 0.3s;
-        }
-        .arte-item:hover .arte-desc {
-            opacity: 1;
-        }
-        .category-title {
+        .marquee-item:hover img { transform: scale(1.1); }
+
+        .section-title-big {
             text-align: center;
-            font-size: 32px;
-            margin: 80px 0 40px;
+            font-size: 50px;
+            margin: 100px 0 40px;
             text-transform: uppercase;
-            letter-spacing: 4px;
+            letter-spacing: 8px;
+            font-weight: 900;
+            color: #fff;
         }
+
         .back-nav {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: rgba(0,0,0,0.5);
-            padding: 10px 20px;
-            border-radius: 30px;
-            color: white;
-            text-decoration: none;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
+            position: fixed; top: 20px; left: 20px; z-index: 1000;
+            background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 30px;
+            color: white; text-decoration: none; backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1); font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-nav"><i class="fas fa-arrow-left"></i> Volver al Inicio</a>
+    <a href="index.html" class="back-nav"><i class="fas fa-arrow-left"></i> INICIO</a>
+
+    <header class="arte-hero">
+        <div class="hero-banner-content">
+            <h1>TATUADORES</h1>
+        </div>
+        <!-- Foto pequeña circular que se solapa -->
+        <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg" class="profile-overlap" alt="333 Studio">
+    </header>
 
     <section class="arte-section">
-        <div class="arte-overlay"></div>
         <div class="arte-content">
             
-            <!-- SECCIÓN MICH -->
-            <div id="mich-section">
-                <div class="artist-intro">
+            <div class="artists-row">
+                <div class="mini-artist-card">
                     <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg" alt="Mich Muzo">
-                    <div class="artist-info">
-                        <h2>MICH MUZO</h2>
-                        <span class="title">Tatuador & Artista Visual</span>
-                        <p>Especialista en detalles finos y composiciones personalizadas. Mi arte busca trascender la piel y convertirse en una extensión de la personalidad de cada cliente.</p>
-                    </div>
+                    <h3>MICH MUZO</h3>
+                    <span>Tatuador Principal</span>
+                    <p>Especialista en detalles finos y composiciones personalizadas.</p>
                 </div>
-                <div id="mich-gallery" class="arte-grid"></div>
-            </div>
-
-            <!-- SECCIÓN TOMAS -->
-            <div id="tomas-section" style="margin-top: 100px;">
-                <div class="artist-intro" style="flex-direction: row-reverse;">
+                <div class="mini-artist-card">
                     <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg" alt="Tomas Segura">
-                    <div class="artist-info" style="text-align: right;">
-                        <h2>TOMAS SEGURA</h2>
-                        <span class="title">Artista Urbano & Tatuador</span>
-                        <p>Apasionado por el arte callejero y el realismo. Mi estilo combina la crudeza del graffiti con la precisión del Black Work.</p>
-                    </div>
+                    <h3>TOMAS SEGURA</h3>
+                    <span>Artista & Tatuador</span>
+                    <p>Apasionado por el arte callejero y el realismo crudo.</p>
                 </div>
-                <div id="tomas-gallery" class="arte-grid"></div>
             </div>
 
-            <h2 class="category-title">Graffitis</h2>
-            <div id="graffiti-gallery" class="arte-grid"></div>
+            <h2 class="section-title-big">FIRMAS & TAGS</h2>
+            <div id="tags-gallery" class="tags-container">
+                <!-- Aquí irán los 2 videos de firmas -->
+            </div>
 
-            <h2 class="category-title">Dibujos & Bocetos</h2>
-            <div id="dibujos-gallery" class="arte-grid"></div>
+            <h2 class="section-title-big">GRAFFITIS</h2>
+            <div class="marquee-wrapper">
+                <div id="graffiti-marquee" class="marquee-content animate-left">
+                    <!-- Contenido duplicado para loop infinito -->
+                </div>
+            </div>
+
+            <h2 class="section-title-big">DIBUJOS & BOCETOS</h2>
+            <div class="marquee-wrapper">
+                <div id="dibujos-marquee" class="marquee-content animate-right">
+                    <!-- Contenido duplicado para loop infinito -->
+                </div>
+            </div>
 
         </div>
     </section>
 
     <script>
         async function loadArte() {
-            const categories = ['mich', 'tomas', 'graffiti', 'dibujos'];
-            for (const cat of categories) {
-                const res = await fetch(`/api/arte/${cat}`);
-                const data = await res.json();
-                const container = document.getElementById(`${cat}-gallery`);
-                if (container) {
-                    container.innerHTML = data.map(item => `
-                        <div class="arte-item">
-                            ${item.mediaType === 'video' 
-                                ? `<video src="${item.imageUrl}" muted loop autoplay playsinline></video>`
-                                : `<img src="${item.imageUrl}" alt="Arte">`
-                            }
-                            <div class="arte-desc">
-                                <p>${item.description || ''}</p>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            }
+            // Cargar Tags (Videos)
+            const resTags = await fetch('/api/arte/tags');
+            const tags = await resTags.json();
+            document.getElementById('tags-gallery').innerHTML = tags.slice(0,2).map(v => `
+                <div class="tag-video">
+                    <video src="${v.imageUrl}" muted loop autoplay playsinline></video>
+                </div>
+            `).join('');
+
+            // Cargar Graffitis (Animación Izquierda)
+            const resGraf = await fetch('/api/arte/graffiti');
+            const grafs = await resGraf.json();
+            const grafContainer = document.getElementById('graffiti-marquee');
+            const grafHtml = grafs.map(img => `
+                <div class="marquee-item" onclick="openFull('${img.imageUrl}')">
+                    <img src="${img.imageUrl}">
+                </div>
+            `).join('');
+            grafContainer.innerHTML = grafHtml + grafHtml; // Duplicar para el loop
+
+            // Cargar Dibujos (Animación Derecha)
+            const resDib = await fetch('/api/arte/dibujos');
+            const dibs = await resDib.json();
+            const dibContainer = document.getElementById('dibujos-marquee');
+            const dibHtml = dibs.map(img => `
+                <div class="marquee-item" onclick="openFull('${img.imageUrl}')">
+                    <img src="${img.imageUrl}">
+                </div>
+            `).join('');
+            dibContainer.innerHTML = dibHtml + dibHtml; // Duplicar para el loop
         }
+
+        function openFull(url) {
+            // Usar el sistema de la página principal o una alerta simple por ahora
+            window.open(url, '_blank');
+        }
+
         window.onload = loadArte;
     </script>
+</body>
+</html>
 </body>
 </html>

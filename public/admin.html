@@ -302,6 +302,7 @@
                             <select id="arteCategory" required>
                                 <option value="mich">Mich Muzo</option>
                                 <option value="tomas">Tomas Segura</option>
+                                <option value="tags">Firmas / Tags</option>
                                 <option value="graffiti">Graffitis</option>
                                 <option value="dibujos">Dibujos</option>
                             </select>
@@ -521,9 +522,14 @@
             } catch (e) { return false; }
         }
 
-        // Subir Diseño
+        // Subir Diseños
         document.getElementById('designForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Subiendo...";
+
             const formData = new FormData();
             formData.append('image', document.getElementById('designImage').files[0]);
             formData.append('price', document.getElementById('designPrice').value);
@@ -534,17 +540,24 @@
                 body: formData 
             });
             if (res.ok) {
-                showToast("Diseño guardado");
+                showToast("Diseño añadido");
                 document.getElementById('designForm').reset();
                 loadDesigns();
             } else {
                 showToast("Error al subir", "error");
             }
+            btn.disabled = false;
+            btn.textContent = originalText;
         });
 
         // Subir Portafolio
         document.getElementById('portfolioForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Subiendo...";
+
             const formData = new FormData();
             formData.append('image', document.getElementById('portfolioImage').files[0]);
 
@@ -560,11 +573,18 @@
             } else {
                 showToast("Error al subir", "error");
             }
+            btn.disabled = false;
+            btn.textContent = originalText;
         });
 
         // Subir Arte
         document.getElementById('arteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Subiendo...";
+
             const formData = new FormData();
             formData.append('image', document.getElementById('arteFile').files[0]);
             formData.append('category', document.getElementById('arteCategory').value);
@@ -582,10 +602,17 @@
             } else {
                 showToast("Error al subir arte", "error");
             }
+            btn.disabled = false;
+            btn.textContent = originalText;
         });
 
         async function deleteItem(type, id) {
             if (!confirm("¿Eliminar este elemento permanentemente?")) return;
+            
+            const btn = event?.target?.closest('button') || {};
+            const originalContent = btn.innerHTML;
+            if(btn.innerHTML) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
             const res = await fetch(`/api/admin/${type}/${id}`, {
                 method: 'DELETE',
                 headers: { 
@@ -594,12 +621,14 @@
                 }
             });
             if (res.ok) {
-                showToast("Eliminado correctamente");
+                showToast("Eliminado con éxito");
                 if (type === 'designs') loadDesigns();
                 else if (type === 'portfolio') loadPortfolio();
+                else if (type === 'arte') loadArte();
                 else if (type === 'reviews') loadReviews();
             } else {
                 showToast("Error al eliminar", "error");
+                if(btn.innerHTML) btn.innerHTML = originalContent;
             }
         }
 

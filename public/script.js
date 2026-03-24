@@ -582,12 +582,18 @@ document.addEventListener("DOMContentLoaded", () => {
       
       const videoClone = document.createElement("video");
       videoClone.src = videoThumb.src;
-      videoClone.controls = true;
       videoClone.autoplay = true;
       videoClone.loop = true;
+      videoClone.muted = false; // Permitir audio al abrir
+      videoClone.playsinline = true;
+      videoClone.disablePictureInPicture = true;
+      videoClone.controlsList = "nodownload nofullscreen noremoteplayback"; // Quitar opciones extra
+      // No añadimos videoClone.controls = true para quitar la barra de tiempo
+      
       videoClone.style.maxWidth = "90vw";
       videoClone.style.maxHeight = "90vh";
       videoClone.style.borderRadius = "12px";
+      videoClone.style.outline = "none";
       
       // Limpiar video anterior
       const oldVideo = lightbox.querySelector("video");

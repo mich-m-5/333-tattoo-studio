@@ -173,11 +173,11 @@ const Portfolio = mongoose.model("Portfolio", portfolioSchema)
 
 // --- NUEVO ESQUEMA PARA "NUESTRO ARTE" ---
 const arteSchema = new mongoose.Schema({
-  category: { type: String, required: true }, // "mich", "tomas", "graffiti", "dibujos"
+  category: { type: String, required: true }, // "mich", "tomas", "graffiti", "dibujos", "tags"
   imageUrl: String,
   mediaType: { type: String, default: "image" },
   description: String,
-  title: String, // Estudiante, Tatuador, etc.
+  title: String, 
   order: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 })
