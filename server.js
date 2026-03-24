@@ -14,7 +14,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
-
+//new
 // Asegurar que las carpetas necesarias existan
 const folders = ["uploads", "public/tattoo"];
 folders.forEach(folder => {
