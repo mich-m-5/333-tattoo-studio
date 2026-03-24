@@ -429,9 +429,16 @@
         }
       });
       
-      // Intentar reproducir automáticamente (podría fallar por políticas del navegador)
+      // Intentar reproducir automáticamente
       player.playVideo();
     }
+
+    // Forzar inicio de música al primer clic del usuario en cualquier parte de la página
+    document.addEventListener('click', () => {
+      if (player && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+        player.playVideo();
+      }
+    }, { once: true });
 
     function onPlayerStateChange(event) {
       const toggleBtn = document.getElementById('music-toggle');

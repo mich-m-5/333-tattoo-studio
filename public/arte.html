@@ -32,6 +32,7 @@
             position: relative;
             z-index: 2;
             text-align: center;
+            padding: 0 20px;
         }
         .hero-banner-content h1 {
             font-size: 80px;
@@ -64,39 +65,17 @@
             margin: 0 auto;
         }
 
-        /* Tatuadores Minimalistas */
-        .artists-row {
-            display: flex;
-            justify-content: center;
-            gap: 80px;
-            margin-bottom: 100px;
-            flex-wrap: wrap;
-        }
-        .mini-artist-card {
-            text-align: center;
-            max-width: 350px;
-        }
-        .mini-artist-card img {
-            width: 220px;
-            height: 220px;
-            border-radius: 20px;
-            object-fit: cover;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .mini-artist-card h3 { font-size: 28px; color: #0070c9; margin-bottom: 5px; }
-        .mini-artist-card span { color: #666; text-transform: uppercase; letter-spacing: 2px; font-size: 14px; }
-        .mini-artist-card p { color: #aaa; margin-top: 15px; line-height: 1.6; }
-
         /* Sección Tags/Firmas */
         .tags-container {
             display: flex;
             justify-content: center;
             gap: 30px;
             margin: 60px 0;
+            flex-wrap: wrap;
         }
         .tag-video {
             width: 45%;
+            min-width: 300px;
             max-width: 500px;
             border-radius: 15px;
             overflow: hidden;
@@ -162,6 +141,21 @@
             color: white; text-decoration: none; backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1); font-weight: bold;
         }
+
+        /* Responsividad Móvil */
+        @media (max-width: 768px) {
+            .hero-banner-content h1 {
+                font-size: 35px;
+                letter-spacing: 5px;
+            }
+            .arte-hero { height: 40vh; }
+            .profile-overlap { width: 130px; height: 130px; bottom: -65px; }
+            .arte-section { padding: 90px 5% 40px; }
+            .section-title-big { font-size: 28px; letter-spacing: 4px; margin: 60px 0 20px; }
+            .marquee-item { width: 250px; height: 250px; }
+            .tag-video { width: 100%; }
+            .back-nav { top: 10px; left: 10px; padding: 8px 15px; font-size: 14px; }
+        }
     </style>
 </head>
 <body>
@@ -178,18 +172,10 @@
     <section class="arte-section">
         <div class="arte-content">
             
-            <div class="artists-row">
-                <div class="mini-artist-card">
-                    <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg" alt="Mich Muzo">
-                    <h3>MICH MUZO</h3>
-                    <span>Tatuador Principal</span>
-                    <p>Especialista en detalles finos y composiciones personalizadas.</p>
-                </div>
-                <div class="mini-artist-card">
-                    <img src="tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg" alt="Tomas Segura">
-                    <h3>TOMAS SEGURA</h3>
-                    <span>Artista & Tatuador</span>
-                    <p>Apasionado por el arte callejero y el realismo crudo.</p>
+            <h2 class="section-title-big">NOSOTROS</h2>
+            <div class="marquee-wrapper">
+                <div id="nosotros-marquee" class="marquee-content animate-right">
+                    <!-- Fotos de Mich y Tomas -->
                 </div>
             </div>
 
@@ -279,41 +265,72 @@
         }
 
         async function loadArte() {
-            // Cargar Tags (Videos)
-            const resTags = await fetch('/api/arte/tags');
-            const tags = await resTags.json();
-            document.getElementById('tags-gallery').innerHTML = tags.slice(0,2).map(v => `
-                <div class="tag-video">
-                    <video src="${v.imageUrl}" muted loop autoplay playsinline></video>
-                </div>
-            `).join('');
-
-            // Cargar Graffitis (Animación Izquierda)
-            const resGraf = await fetch('/api/arte/graffiti');
-            const grafs = await resGraf.json();
-            const grafContainer = document.getElementById('graffiti-marquee');
-            
             // Función para asegurar suficiente contenido para el loop
             const generateLoopHtml = (items) => {
+                if (items.length === 0) return '';
                 let html = items.map(img => `
                     <div class="marquee-item" onclick="openFull('${img.imageUrl}')">
                         <img src="${img.imageUrl}">
                     </div>
                 `).join('');
-                // Si hay pocos items, duplicamos más veces para llenar el ancho
-                if (items.length > 0 && items.length < 6) {
-                    return html + html + html + html;
-                }
-                return html + html;
+                // Duplicamos varias veces para asegurar que el marquee siempre esté lleno
+                return html + html + html + html;
             };
 
-            grafContainer.innerHTML = generateLoopHtml(grafs);
+            // Cargar Nosotros (Mich y Tomas)
+            try {
+                const resMich = await fetch('/api/arte/mich');
+                const michData = await resMich.json();
+                const resTomas = await fetch('/api/arte/tomas');
+                const tomasData = await resTomas.json();
+                let combined = [...michData, ...tomasData];
+                
+                // Si no hay fotos en la base de datos, usamos locales por defecto
+                if (combined.length === 0) {
+                    combined = [
+                        { imageUrl: 'tattoo/mich.jpeg' },
+                        { imageUrl: 'tattoo/TATUADORES.jpeg' },
+                        { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg' },
+                        { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg' }
+                    ];
+                }
+                document.getElementById('nosotros-marquee').innerHTML = generateLoopHtml(combined);
+            } catch (e) { 
+                console.error("Error cargando Nosotros:", e);
+                // Fallback manual en caso de error de red
+                const fallback = [
+                    { imageUrl: 'tattoo/mich.jpeg' },
+                    { imageUrl: 'tattoo/TATUADORES.jpeg' },
+                    { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.08 PM.jpeg' },
+                    { imageUrl: 'tattoo/WhatsApp Image 2026-03-11 at 10.16.09 PM.jpeg' }
+                ];
+                document.getElementById('nosotros-marquee').innerHTML = generateLoopHtml(fallback);
+            }
+
+            // Cargar Tags (Videos)
+            try {
+                const resTags = await fetch('/api/arte/tags');
+                const tags = await resTags.json();
+                document.getElementById('tags-gallery').innerHTML = tags.slice(0,2).map(v => `
+                    <div class="tag-video">
+                        <video src="${v.imageUrl}" muted loop autoplay playsinline></video>
+                    </div>
+                `).join('');
+            } catch (e) { console.error("Error cargando Tags:", e); }
+
+            // Cargar Graffitis (Animación Izquierda)
+            try {
+                const resGraf = await fetch('/api/arte/graffiti');
+                const grafs = await resGraf.json();
+                document.getElementById('graffiti-marquee').innerHTML = generateLoopHtml(grafs);
+            } catch (e) { console.error("Error cargando Graffitis:", e); }
 
             // Cargar Dibujos (Animación Derecha)
-            const resDib = await fetch('/api/arte/dibujos');
-            const dibs = await resDib.json();
-            const dibContainer = document.getElementById('dibujos-marquee');
-            dibContainer.innerHTML = generateLoopHtml(dibs);
+            try {
+                const resDib = await fetch('/api/arte/dibujos');
+                const dibs = await resDib.json();
+                document.getElementById('dibujos-marquee').innerHTML = generateLoopHtml(dibs);
+            } catch (e) { console.error("Error cargando Dibujos:", e); }
             
             muteAllVideos();
         }
@@ -338,6 +355,13 @@
                 v.setAttribute('muted', '');
             });
         }
+
+        // Intento de reproducción automática al primer clic en cualquier parte
+        document.addEventListener('click', () => {
+            if (player && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                player.playVideo();
+            }
+        }, { once: true });
 
         window.onload = loadArte;
     </script>

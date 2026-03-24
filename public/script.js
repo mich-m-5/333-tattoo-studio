@@ -270,7 +270,8 @@ async function fetchReviews() {
     // Limpiar intervalo anterior si existe
     if (reviewInterval) clearInterval(reviewInterval);
 
-    reviewsList.innerHTML = reviews.map(r => `
+    // Duplicamos las reseñas para crear el efecto de bucle infinito
+    const reviewHtml = reviews.map(r => `
       <div class="review-card">
         ${r.tattooImageUrl 
           ? (r.tattooMediaType === 'video' 
@@ -292,10 +293,11 @@ async function fetchReviews() {
       </div>
     `).join('');
 
-    // Iniciar auto-scroll si hay más de una reseña
-    if (reviews.length > 1) {
-      startReviewCarousel(reviews.length);
-    }
+    // Insertamos las reseñas duplicadas para el loop
+    reviewsList.innerHTML = reviewHtml + reviewHtml;
+
+    // Iniciar auto-scroll
+    startReviewCarousel(reviews.length);
   } catch (error) {
     console.error("Error cargando reseñas:", error);
   }
@@ -306,10 +308,21 @@ function startReviewCarousel(count) {
   currentReviewIndex = 0;
   
   reviewInterval = setInterval(() => {
-    currentReviewIndex = (currentReviewIndex + 1) % count;
+    currentReviewIndex++;
     const cardHeight = list.children[0].offsetHeight + 30; // Altura + gap
+    
+    list.style.transition = "transform 1s ease-in-out";
     list.style.transform = `translateY(-${currentReviewIndex * cardHeight}px)`;
-  }, 7000); // 7 segundos por reseña (6s quieta + 1s transición aprox)
+
+    // Si llegamos al final de la primera tanda, reseteamos sin animación
+    if (currentReviewIndex >= count) {
+      setTimeout(() => {
+        list.style.transition = "none";
+        currentReviewIndex = 0;
+        list.style.transform = `translateY(0)`;
+      }, 1000); // Esperar a que termine la animación de 1s
+    }
+  }, 5000); // 5 segundos por reseña
 }
 
 // Cargar portafolio para el selector de reseñas

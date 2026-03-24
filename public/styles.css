@@ -998,7 +998,61 @@ footer p {
   overflow: hidden;
   position: relative;
   mask-image: linear-gradient(transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(transparent, black 10%, black 90%, transparent);
 }
+
+.reviews-column {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  transition: transform 1s ease-in-out;
+}
+
+.review-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  min-height: 150px;
+}
+
+/* Responsividad para móviles */
+@media (max-width: 768px) {
+  .reviews-container {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .reviews-viewport {
+    height: 400px;
+  }
+  .review-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+  .review-tattoo-thumb {
+    width: 80px;
+    height: 80px;
+  }
+  .hero-seo-box h1 {
+    font-size: 32px;
+  }
+  .hero-seo-box p {
+    font-size: 16px;
+  }
+  .gallery {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+.reviews-viewport {
+  mask-image: linear-gradient(transparent, black 10%, black 90%, transparent);
+}
+
 
 .reviews-column {
   display: flex;
