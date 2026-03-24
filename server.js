@@ -383,6 +383,7 @@ app.post("/api/admin/portfolio", verifyAdmin, upload.single("image"), async (req
     res.status(500).json({ error: error.message });
   }
 });
+// update
 
 // Eliminar del portafolio (Admin)
 app.delete("/api/admin/portfolio/:id", verifyAdmin, async (req, res) => {

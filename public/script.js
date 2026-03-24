@@ -446,26 +446,7 @@ async function fetchPortfolio() {
     }).join('');
 
     // Re-inicializar scroll reveal
-    // --- LÓGICA DE EDAD Y AUTORIZACIÓN ---
-  const ageInput = document.getElementById("ageInput");
-  const minorAuthorization = document.getElementById("minorAuthorization");
-  const minorAuthCheckbox = document.getElementById("minorAuthCheckbox");
-
-  if (ageInput && minorAuthorization) {
-    ageInput.addEventListener("input", (e) => {
-      const age = parseInt(e.target.value);
-      if (age > 0 && age < 18) {
-        minorAuthorization.style.display = "block";
-        minorAuthCheckbox.setAttribute("required", "required");
-      } else {
-        minorAuthorization.style.display = "none";
-        minorAuthCheckbox.removeAttribute("required");
-        minorAuthCheckbox.checked = false;
-      }
-    });
-  }
-
-  initScrollReveal();
+    initScrollReveal();
     
   } catch (error) {
     console.error("Error cargando portafolio:", error);
@@ -536,6 +517,25 @@ document.addEventListener("DOMContentLoaded", () => {
     closeReviewBtn.addEventListener("click", () => {
       reviewFormContainer.style.display = "none";
       showReviewBtnContainer.style.display = "block";
+    });
+  }
+
+  // --- LÓGICA DE EDAD Y AUTORIZACIÓN ---
+  const ageInput = document.getElementById("ageInput");
+  const minorAuthorization = document.getElementById("minorAuthorization");
+  const minorAuthCheckbox = document.getElementById("minorAuthCheckbox");
+
+  if (ageInput && minorAuthorization) {
+    ageInput.addEventListener("input", (e) => {
+      const age = parseInt(e.target.value);
+      if (age > 0 && age < 18) {
+        minorAuthorization.style.display = "block";
+        minorAuthCheckbox.setAttribute("required", "required");
+      } else {
+        minorAuthorization.style.display = "none";
+        minorAuthCheckbox.removeAttribute("required");
+        minorAuthCheckbox.checked = false;
+      }
     });
   }
 
