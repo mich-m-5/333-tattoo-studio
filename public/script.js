@@ -108,7 +108,7 @@ async function handleFormSubmission() {
       }
       
       message += `━━━━━━━━━━━━━━━━━━━━\n`;
-      message += `_Enviado desde el sitio web oficial_`;
+      message += `_Enviado desde el sitio web oficial de 333 tattoo studio_`;
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/593959584119?text=${encodedMessage}`;
@@ -309,7 +309,7 @@ function startReviewCarousel(count) {
     currentReviewIndex = (currentReviewIndex + 1) % count;
     const cardHeight = list.children[0].offsetHeight + 30; // Altura + gap
     list.style.transform = `translateY(-${currentReviewIndex * cardHeight}px)`;
-  }, 4000); // 4 segundos por reseña (3s quieta + 1s transición aprox)
+  }, 7000); // 7 segundos por reseña (6s quieta + 1s transición aprox)
 }
 
 // Cargar portafolio para el selector de reseñas
@@ -446,7 +446,26 @@ async function fetchPortfolio() {
     }).join('');
 
     // Re-inicializar scroll reveal
-    initScrollReveal();
+    // --- LÓGICA DE EDAD Y AUTORIZACIÓN ---
+  const ageInput = document.getElementById("ageInput");
+  const minorAuthorization = document.getElementById("minorAuthorization");
+  const minorAuthCheckbox = document.getElementById("minorAuthCheckbox");
+
+  if (ageInput && minorAuthorization) {
+    ageInput.addEventListener("input", (e) => {
+      const age = parseInt(e.target.value);
+      if (age > 0 && age < 18) {
+        minorAuthorization.style.display = "block";
+        minorAuthCheckbox.setAttribute("required", "required");
+      } else {
+        minorAuthorization.style.display = "none";
+        minorAuthCheckbox.removeAttribute("required");
+        minorAuthCheckbox.checked = false;
+      }
+    });
+  }
+
+  initScrollReveal();
     
   } catch (error) {
     console.error("Error cargando portafolio:", error);

@@ -197,9 +197,18 @@
       <div class="input-group-row">
         <div class="input-field">
           <label>EDAD</label>
-          <input name="age" placeholder="Tu edad" required>
+          <input type="number" name="age" id="ageInput" placeholder="Tu edad" required>
         </div>
-        <div class="input-field">
+      </div>
+      
+      <!-- Casilla de autorización para menores -->
+      <div id="minorAuthorization" class="terms-container" style="display: none; margin-bottom: 20px;">
+        <label class="checkbox-label">
+          <input type="checkbox" name="minor-auth" id="minorAuthCheckbox">
+          <span class="checkmark"></span>
+          Confirmo que tengo **autorización de mi representante legal** para realizarme este tatuaje.
+        </label>
+      </div> class="input-field">
           <label>TAMAÑO APROX (cm)</label>
           <input name="tattoo-size" placeholder="Ej: 10x10 cm" required>
         </div>
@@ -214,28 +223,28 @@
       <h3>ESTILO</h3>
       <p>Elije el que más te guste</p>
       <div class="style-grid">
-        <label class="style-option">
+        <label class="style-option" title="Tatuajes de alto contraste, solo tinta negra, con sombras sólidas y líneas gruesas.">
           <input type="radio" name="style" value="Blackwork" required>
           <div class="style-card">
             <i class="fas fa-bolt"></i>
             <span>BLACKWORK</span>
           </div>
         </label>
-        <label class="style-option">
+        <label class="style-option" title="Tatuajes que utilizan solo tinta negra diluida para crear una gama de grises, ideal para realismo.">
           <input type="radio" name="style" value="Black and grey">
           <div class="style-card">
             <i class="fas fa-bolt"></i>
             <span>BLACK & GREY</span>
           </div>
         </label>
-        <label class="style-option">
+        <label class="style-option" title="Diseños listos para tatuar, generalmente pequeños y de ejecución rápida.">
           <input type="radio" name="style" value="Flash Tattoo">
           <div class="style-card">
             <i class="fas fa-bolt"></i>
             <span>FLASH TATTOO</span>
           </div>
         </label>
-        <label class="style-option">
+        <label class="style-option" title="Tatuajes enfocados en letras, caligrafía y tipografías personalizadas.">
           <input type="radio" name="style" value="Letering">
           <div class="style-card">
             <i class="fas fa-bolt"></i>
@@ -360,7 +369,7 @@
   <div id="cookie-banner" class="cookie-banner">
     <div class="cookie-content">
       <p>
-        Nosotros (www.333tattoostudio.com) y terceros seleccionados recogemos información personal y utilizamos cookies o tecnologías similares con fines técnicos y, con su consentimiento, para las finalidades de <strong>funcionalidad, experiencia, medición y “marketing (anuncios personalizados)”</strong>. Usted es libre de otorgar, denegar o revocar su consentimiento en cualquier momento accediendo al panel de preferencias. Denegar el consentimiento puede provocar que las características relacionadas no estén disponibles. Utilice el botón “Aceptar” para dar su consentimiento. Utilice el botón “Rechazar” para continuar sin aceptar.
+        Nosotros (https://three33-tattoo-studio.onrender.com/) y terceros seleccionados recogemos información personal y utilizamos cookies o tecnologías similares con fines técnicos y, con su consentimiento, para las finalidades de <strong>funcionalidad, experiencia, medición y “marketing (anuncios personalizados)”</strong>. Usted es libre de otorgar, denegar o revocar su consentimiento en cualquier momento accediendo al panel de preferencias. Denegar el consentimiento puede provocar que las características relacionadas no estén disponibles. Utilice el botón “Aceptar” para dar su consentimiento. Utilice el botón “Rechazar” para continuar sin aceptar.
       </p>
       <div class="cookie-actions">
         <div class="main-actions">
