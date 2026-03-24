@@ -561,34 +561,66 @@ document.addEventListener("DOMContentLoaded", () => {
   let isZoomed = false;
 
   document.addEventListener("click", (e) => {
-    // Abrir Lightbox
-    const img = e.target.closest(".gallery img, .design-item img");
+    // Abrir Lightbox para imágenes
+    const img = e.target.closest(".gallery img, .design-item img, .arte-item img");
     if (img && !lightbox.classList.contains("active")) {
       lightboxImg.src = img.src;
+      lightboxImg.style.display = "block";
+      // Ocultar video si existía
+      const oldVideo = lightbox.querySelector("video");
+      if (oldVideo) oldVideo.remove();
+      
       lightbox.classList.add("active");
-      document.body.style.overflow = "hidden"; // Bloquear scroll
+      document.body.style.overflow = "hidden";
+      return;
+    }
+
+    // Abrir Lightbox para videos
+    const videoThumb = e.target.closest(".portfolio-video-container video, .arte-item video");
+    if (videoThumb && !lightbox.classList.contains("active")) {
+      lightboxImg.style.display = "none";
+      
+      const videoClone = document.createElement("video");
+      videoClone.src = videoThumb.src;
+      videoClone.controls = true;
+      videoClone.autoplay = true;
+      videoClone.loop = true;
+      videoClone.style.maxWidth = "90vw";
+      videoClone.style.maxHeight = "90vh";
+      videoClone.style.borderRadius = "12px";
+      
+      // Limpiar video anterior
+      const oldVideo = lightbox.querySelector("video");
+      if (oldVideo) oldVideo.remove();
+      
+      lightbox.appendChild(videoClone);
+      lightbox.classList.add("active");
+      document.body.style.overflow = "hidden";
       return;
     }
 
     // Lógica dentro del Lightbox
     if (lightbox.classList.contains("active")) {
       const clickedOnImg = e.target === lightboxImg;
+      const clickedOnVideo = e.target.tagName === 'VIDEO';
 
       if (clickedOnImg) {
-        // Toggle ZOOM
+        // Toggle ZOOM solo para imágenes
         isZoomed = !isZoomed;
         if (isZoomed) {
           lightbox.classList.add("zoomed");
         } else {
           lightbox.classList.remove("zoomed");
-          lightboxImg.style.transform = ""; // Reset posición
+          lightboxImg.style.transform = "";
         }
-      } else {
-        // Cerrar si se hace clic fuera de la imagen o si ya se quiere cerrar
+      } else if (!clickedOnVideo) {
+        // Cerrar si se hace clic fuera
         lightbox.classList.remove("active", "zoomed");
         isZoomed = false;
         lightboxImg.style.transform = "";
-        document.body.style.overflow = "auto"; // Habilitar scroll
+        const video = lightbox.querySelector("video");
+        if (video) video.remove();
+        document.body.style.overflow = "auto";
       }
     }
   });

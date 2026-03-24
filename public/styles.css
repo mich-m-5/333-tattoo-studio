@@ -176,7 +176,20 @@ nav a:hover {
   box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }
 
-/* Estilos para Tooltips de Estilos */
+.nav-highlight {
+  color: #0070c9 !important;
+  font-weight: bold;
+  border: 1px solid rgba(0, 112, 201, 0.3);
+  padding: 5px 15px !important;
+  border-radius: 20px;
+  background: rgba(0, 112, 201, 0.05);
+}
+
+.nav-highlight:hover {
+  background: rgba(0, 112, 201, 0.15);
+}
+
+/* Otros estilos existentes */
 .style-option {
   position: relative;
 }

@@ -250,6 +250,7 @@
             <div class="admin-tabs">
                 <button class="tab-btn active" onclick="switchTab('designs')">DISEÑOS</button>
                 <button class="tab-btn" onclick="switchTab('portfolio')">PORTAFOLIO</button>
+                <button class="tab-btn" onclick="switchTab('arte')">NUESTRO ARTE</button>
                 <button class="tab-btn" onclick="switchTab('reviews')">RESEÑAS</button>
             </div>
 
@@ -287,6 +288,36 @@
                     </form>
                 </div>
                 <div id="portfolioList" class="grid-list">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <!-- TAB NUESTRO ARTE -->
+            <div id="tab-arte" class="tab-content">
+                <div class="upload-card">
+                    <h3>Agregar a "Nuestro Arte"</h3>
+                    <form id="arteForm" class="form-row" style="grid-template-columns: 1fr 1fr 1fr auto;">
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <select id="arteCategory" required>
+                                <option value="mich">Mich Muzo</option>
+                                <option value="tomas">Tomas Segura</option>
+                                <option value="graffiti">Graffitis</option>
+                                <option value="dibujos">Dibujos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción (Opcional)</label>
+                            <input type="text" id="arteDesc" placeholder="Breve descripción">
+                        </div>
+                        <div class="form-group">
+                            <label>Archivo (Foto/Video)</label>
+                            <input type="file" id="arteFile" accept="image/*,video/*" required>
+                        </div>
+                        <button type="submit" class="btn">Subir Arte</button>
+                    </form>
+                </div>
+                <div id="arteList" class="grid-list">
                     <!-- Dinámico -->
                 </div>
             </div>
@@ -359,7 +390,61 @@
         }
 
         async function loadAll() {
-            return Promise.all([loadDesigns(), loadPortfolio(), loadReviews()]);
+            return Promise.all([loadDesigns(), loadPortfolio(), loadArte(), loadReviews()]);
+        }
+
+        async function loadArte() {
+            try {
+                const categories = ['mich', 'tomas', 'graffiti', 'dibujos'];
+                let allHtml = '';
+                for (const cat of categories) {
+                    const res = await fetch(`/api/arte/${cat}`);
+                    const data = await res.json();
+                    allHtml += data.map(item => `
+                        <div class="item-card" data-id="${item._id}" data-order="${item.order || 0}">
+                            ${item.mediaType === 'video' 
+                                ? `<video src="${encodeURI(item.imageUrl)}" muted loop style="width:100%; aspect-ratio:1/1; object-fit:cover;"></video>` 
+                                : `<img src="${encodeURI(item.imageUrl)}">`
+                            }
+                            <div class="item-info">
+                                <div style="display:flex; flex-direction:column; gap:5px;">
+                                    <span style="font-size:10px; color:#aaa; text-transform:uppercase;">${cat}</span>
+                                    <input type="number" class="order-input" value="${item.order || 0}" 
+                                        onchange="updateItemOrder('arte', '${item._id}', this.value)" 
+                                        style="width:50px; background:#222; color:white; border:1px solid #444; border-radius:4px; padding:2px 5px;">
+                                </div>
+                                <button class="btn btn-danger btn-sm" onclick="deleteItem('arte', '${item._id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                document.getElementById('arteList').innerHTML = allHtml;
+                return true;
+            } catch (e) { return false; }
+        }
+
+        async function updateItemOrder(type, id, newOrder) {
+            try {
+                const res = await fetch('/api/admin/reorder', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-admin-password': password 
+                    },
+                    body: JSON.stringify({
+                        type,
+                        items: [{ id, order: parseInt(newOrder) }]
+                    })
+                });
+                if (res.ok) {
+                    showToast("Orden actualizado");
+                    if (type === 'designs') loadDesigns();
+                    else if (type === 'portfolio') loadPortfolio();
+                    else if (type === 'arte') loadArte();
+                }
+            } catch (e) { showToast("Error al ordenar", "error"); }
         }
 
         async function loadDesigns() {
@@ -372,6 +457,9 @@
                         <img src="${encodeURI(d.imageUrl)}" alt="Diseño">
                         ${d.price && d.price !== 'Consultar' ? `<div class="price-badge">${d.price}</div>` : ''}
                         <div class="item-info">
+                            <input type="number" class="order-input" value="${d.order || 0}" 
+                                onchange="updateItemOrder('designs', '${d._id}', this.value)" 
+                                style="width:50px; background:#222; color:white; border:1px solid #444; border-radius:4px; padding:2px 5px;">
                             <button class="btn btn-danger btn-sm" onclick="deleteItem('designs', '${d._id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -394,7 +482,9 @@
                             : `<img src="${encodeURI(p.imageUrl)}">`
                         }
                         <div class="item-info">
-                            <span style="font-size:12px; color:#555;">${p.mediaType === 'video' ? 'Video' : 'Imagen'}</span>
+                            <input type="number" class="order-input" value="${p.order || 0}" 
+                                onchange="updateItemOrder('portfolio', '${p._id}', this.value)" 
+                                style="width:50px; background:#222; color:white; border:1px solid #444; border-radius:4px; padding:2px 5px;">
                             <button class="btn btn-danger btn-sm" onclick="deleteItem('portfolio', '${p._id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -469,6 +559,28 @@
                 loadPortfolio();
             } else {
                 showToast("Error al subir", "error");
+            }
+        });
+
+        // Subir Arte
+        document.getElementById('arteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('image', document.getElementById('arteFile').files[0]);
+            formData.append('category', document.getElementById('arteCategory').value);
+            formData.append('description', document.getElementById('arteDesc').value);
+
+            const res = await fetch('/api/admin/arte', { 
+                method: 'POST', 
+                headers: { 'x-admin-password': password },
+                body: formData 
+            });
+            if (res.ok) {
+                showToast("Arte guardado");
+                document.getElementById('arteForm').reset();
+                loadArte();
+            } else {
+                showToast("Error al subir arte", "error");
             }
         });
 

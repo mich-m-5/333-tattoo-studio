@@ -158,17 +158,30 @@ const Booking = mongoose.model("Booking",bookingSchema)
 const designSchema = new mongoose.Schema({
   imageUrl: String,
   price: String,
+  order: { type: Number, default: 0 }, // Para ordenamiento personalizado
   createdAt: { type: Date, default: Date.now }
 })
 const Design = mongoose.model("Design", designSchema)
 
-// --- NUEVO ESQUEMA PARA EL PORTAFOLIO ---
 const portfolioSchema = new mongoose.Schema({
   imageUrl: String,
-  mediaType: { type: String, default: "image" }, // "image" o "video"
+  mediaType: { type: String, default: "image" },
+  order: { type: Number, default: 0 }, // Para ordenamiento personalizado
   createdAt: { type: Date, default: Date.now }
 })
 const Portfolio = mongoose.model("Portfolio", portfolioSchema)
+
+// --- NUEVO ESQUEMA PARA "NUESTRO ARTE" ---
+const arteSchema = new mongoose.Schema({
+  category: { type: String, required: true }, // "mich", "tomas", "graffiti", "dibujos"
+  imageUrl: String,
+  mediaType: { type: String, default: "image" },
+  description: String,
+  title: String, // Estudiante, Tatuador, etc.
+  order: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now }
+})
+const Arte = mongoose.model("Arte", arteSchema)
 
 // --- NUEVO ESQUEMA PARA RESEÑAS ---
 const reviewSchema = new mongoose.Schema({
@@ -235,7 +248,7 @@ app.get("/api/designs", async (req, res) => {
       return res.status(503).json([]);
     }
 
-    const designs = await Design.find().sort({ createdAt: -1 });
+    const designs = await Design.find().sort({ order: 1, createdAt: -1 });
     const normalized = designs.map(d => {
       let imageUrl = d.imageUrl;
       // Si la URL no es de Cloudinary y no empieza con /, añadirle /
@@ -245,7 +258,8 @@ app.get("/api/designs", async (req, res) => {
       return {
         ...d.toObject(),
         imageUrl: imageUrl,
-        price: d.price || ""
+        price: d.price || "",
+        order: d.order || 0
       };
     });
     res.json(normalized);
@@ -329,7 +343,7 @@ app.get("/api/portfolio", async (req, res) => {
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json([]);
     }
-    const portfolio = await Portfolio.find().sort({ createdAt: -1 });
+    const portfolio = await Portfolio.find().sort({ order: 1, createdAt: -1 });
     const normalized = portfolio.map(p => {
       let imageUrl = p.imageUrl;
       if (!imageUrl?.startsWith("http") && !imageUrl?.startsWith("/")) {
@@ -338,7 +352,8 @@ app.get("/api/portfolio", async (req, res) => {
       return {
         ...p.toObject(),
         imageUrl: imageUrl,
-        mediaType: p.mediaType || "image"
+        mediaType: p.mediaType || "image",
+        order: p.order || 0
       };
     });
     res.json(normalized);
@@ -410,6 +425,106 @@ app.delete("/api/admin/portfolio/:id", verifyAdmin, async (req, res) => {
     } else {
       res.status(404).json({ error: "Imagen no encontrada" });
     }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- RUTAS PARA "NUESTRO ARTE" ---
+
+// Obtener arte por categoría
+app.get("/api/arte/:category", async (req, res) => {
+  try {
+    const items = await Arte.find({ category: req.params.category }).sort({ order: 1, createdAt: -1 });
+    const normalized = items.map(item => {
+      let imageUrl = item.imageUrl;
+      if (!imageUrl?.startsWith("http") && !imageUrl?.startsWith("/")) {
+        imageUrl = `/${imageUrl}`;
+      }
+      return {
+        ...item.toObject(),
+        imageUrl
+      };
+    });
+    res.json(normalized);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Agregar arte (Admin)
+app.post("/api/admin/arte", verifyAdmin, upload.single("image"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Debes subir un archivo" });
+  }
+
+  const { category, description, title, order } = req.body;
+
+  try {
+    let imageUrl = `/tattoo/${req.file.filename}`;
+    const isVideo = req.file.mimetype.startsWith("video/");
+    const mediaType = isVideo ? "video" : "image";
+
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: `tattoo_studio/arte/${category}`,
+          resource_type: isVideo ? "video" : "image"
+        });
+        imageUrl = result.secure_url;
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error("Error Cloudinary Arte:", err.message);
+      }
+    }
+
+    const newItem = new Arte({
+      category,
+      imageUrl,
+      mediaType,
+      description,
+      title,
+      order: order || 0
+    });
+    await newItem.save();
+    res.status(201).json(newItem);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Eliminar arte (Admin)
+app.delete("/api/admin/arte/:id", verifyAdmin, async (req, res) => {
+  try {
+    const item = await Arte.findById(req.params.id);
+    if (item) {
+      if (item.imageUrl.includes("cloudinary.com")) {
+        try {
+          const publicId = item.imageUrl.split("/").slice(-2).join("/").split(".")[0];
+          await cloudinary.uploader.destroy(publicId);
+        } catch (e) {}
+      } else {
+        const filePath = path.join(__dirname, "public", item.imageUrl);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
+      await Arte.findByIdAndDelete(req.params.id);
+      res.json({ message: "Eliminado con éxito" });
+    } else {
+      res.status(404).json({ error: "No encontrado" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Ruta para actualizar orden (Admin)
+app.post("/api/admin/reorder", verifyAdmin, async (req, res) => {
+  const { type, items } = req.body; // type: "designs", "portfolio", "arte"
+  try {
+    const Model = type === "designs" ? Design : type === "portfolio" ? Portfolio : Arte;
+    const promises = items.map(item => Model.findByIdAndUpdate(item.id, { order: item.order }));
+    await Promise.all(promises);
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
