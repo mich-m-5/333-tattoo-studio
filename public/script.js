@@ -40,8 +40,8 @@ function showToast(title, message, type = 'info', duration = 4000) {
 async function handleFormSubmission() {
   console.log("Intentando enviar formulario...");
   
-  const termsCheckbox = form.querySelector('input[type="checkbox"]');
-  if (!termsCheckbox.checked) {
+  const termsCheckbox = document.getElementById("termsCheckbox");
+  if (!termsCheckbox || !termsCheckbox.checked) {
     showToast("¡Hey!", "Debes aceptar las políticas y condiciones para continuar.", "error");
     return;
   }
